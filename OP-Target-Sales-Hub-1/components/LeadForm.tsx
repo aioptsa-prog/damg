@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Sparkles, Building2, FileText, MapPin, Globe, AlertCircle, Loader2, Zap, ChevronDown, MessageSquare } from 'lucide-react';
+import { Sparkles, Building2, FileText, MapPin, Globe, AlertCircle, Loader2, Zap, ChevronDown, MessageSquare, Search, CheckCircle2, ExternalLink } from 'lucide-react';
 import { aiService } from '../services/aiService';
 import { sectorService } from '../services/sectorService';
 import { enrichmentService } from '../services/enrichmentService';
@@ -20,6 +20,8 @@ interface LeadFormProps {
 const LeadForm: React.FC<LeadFormProps> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [enriching, setEnriching] = useState(false);
+  const [researching, setResearching] = useState(false);
+  const [researchResult, setResearchResult] = useState<any>(null);
   const [evidence, setEvidence] = useState<NormalizedEvidencePack | null>(null);
   const [error, setError] = useState<{title: string, msg: string} | null>(null);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
@@ -58,6 +60,122 @@ const LeadForm: React.FC<LeadFormProps> = ({ onSuccess }) => {
     } finally {
       setEnriching(false);
     }
+  };
+
+  // البحث التلقائي عن الشركة
+  const runAutoResearch = async () => {
+    if (!formData.companyName.trim()) return;
+    
+    setResearching(true);
+    setResearchResult(null);
+    
+    try {
+      logger.debug('[LeadForm] Starting auto research for:', formData.companyName);
+      
+      const response = await fetch('/api/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          companyName: formData.companyName,
+          city: formData.city,
+          activity: formData.activity
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('فشل البحث');
+      }
+
+      const result = await response.json();
+      logger.debug('[LeadForm] Research result:', result);
+      setResearchResult(result);
+
+      // تحديث الحقول تلقائياً بالنتائج
+      const updates: any = {};
+      
+      if (result.discovered?.website?.url && !formData.website) {
+        updates.website = result.discovered.website.url;
+      }
+      
+      if (result.discovered?.socialMedia?.length > 0) {
+        const instagram = result.discovered.socialMedia.find((s: any) => s.type === 'instagram');
+        if (instagram && !formData.instagram) {
+          updates.instagram = instagram.url;
+        }
+      }
+      
+      if (result.discovered?.maps?.url && !formData.maps) {
+        updates.maps = result.discovered.maps.url;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setFormData(prev => ({ ...prev, ...updates }));
+      }
+
+      // إذا وجدنا بيانات، نحولها لـ evidence
+      if (result.extracted?.website || result.extracted?.maps) {
+        const evidenceBundle = convertResearchToEvidence(result);
+        setEvidence(normalizeEvidence(evidenceBundle));
+      }
+
+    } catch (e: any) {
+      logger.error('[LeadForm] Auto research failed:', e);
+    } finally {
+      setResearching(false);
+    }
+  };
+
+  // تحويل نتائج البحث لصيغة Evidence
+  const convertResearchToEvidence = (result: any): any => {
+    const sources: any[] = [];
+    
+    if (result.extracted?.website) {
+      sources.push({
+        type: 'website',
+        url: result.discovered?.website?.url,
+        status: 'success',
+        parseOk: true,
+        parsed: result.extracted.website,
+        keyFindings: [
+          result.extracted.website.title && `عنوان: ${result.extracted.website.title}`,
+          result.extracted.website.phones?.length > 0 && `هاتف: ${result.extracted.website.phones.join(', ')}`,
+          result.extracted.website.emails?.length > 0 && `بريد: ${result.extracted.website.emails.join(', ')}`,
+        ].filter(Boolean)
+      });
+    }
+    
+    if (result.extracted?.maps) {
+      sources.push({
+        type: 'google_maps',
+        url: result.discovered?.maps?.url,
+        status: 'success',
+        parseOk: true,
+        keyFindings: [
+          `الاسم: ${result.extracted.maps.name}`,
+          `العنوان: ${result.extracted.maps.address}`,
+          result.extracted.maps.phone && `الهاتف: ${result.extracted.maps.phone}`,
+          result.extracted.maps.rating && `التقييم: ${result.extracted.maps.rating}`,
+        ].filter(Boolean)
+      });
+    }
+
+    return {
+      sources,
+      extracted: result.extracted,
+      diagnostics: {
+        totalDurationMs: result.summary?.duration || 0,
+        errors: result.summary?.errors || [],
+        warnings: []
+      },
+      qualityScore: Math.round((result.summary?.totalConfidence || 0) * 100),
+      _raw_bundle: {
+        sources,
+        extracted: result.extracted,
+        diagnostics: { totalDurationMs: result.summary?.duration || 0, errors: [], warnings: [] },
+        qualityScore: Math.round((result.summary?.totalConfidence || 0) * 100)
+      }
+    };
   };
 
   const startAnalysis = async () => {
@@ -249,8 +367,111 @@ const LeadForm: React.FC<LeadFormProps> = ({ onSuccess }) => {
             </div>
           </div>
 
+          {/* زر البحث التلقائي */}
+          <div className="pt-6 border-t border-slate-50">
+            <button
+              type="button"
+              onClick={runAutoResearch}
+              disabled={!formData.companyName.trim() || researching}
+              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-black py-5 rounded-[1.5rem] shadow-xl flex items-center justify-center gap-4 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {researching ? (
+                <>
+                  <Loader2 size={24} className="animate-spin" />
+                  جاري البحث التلقائي عن الشركة...
+                </>
+              ) : (
+                <>
+                  <Search size={24} />
+                  بحث تلقائي عن "{formData.companyName || 'الشركة'}"
+                </>
+              )}
+            </button>
+            <p className="text-[10px] text-slate-400 text-center mt-2">
+              يبحث النظام تلقائياً عن الموقع الإلكتروني وحسابات التواصل ومعلومات الخريطة
+            </p>
+          </div>
+
+          {/* نتائج البحث التلقائي */}
+          {researchResult && (
+            <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-[2rem] animate-in fade-in slide-in-from-top-2">
+              <div className="flex flex-row-reverse items-center justify-between mb-4">
+                <h5 className="text-sm font-black text-indigo-800 flex items-center gap-2">
+                  <CheckCircle2 size={18} className="text-green-500" />
+                  نتائج البحث التلقائي
+                </h5>
+                <span className="text-xs font-bold text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full">
+                  ثقة: {Math.round((researchResult.summary?.totalConfidence || 0) * 100)}%
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* الموقع الإلكتروني */}
+                <div className="bg-white rounded-xl p-4 border border-indigo-100">
+                  <div className="flex items-center justify-end gap-2 text-indigo-600 font-black text-xs mb-2">
+                    <Globe size={14} /> الموقع الإلكتروني
+                  </div>
+                  {researchResult.discovered?.website ? (
+                    <a href={researchResult.discovered.website.url} target="_blank" rel="noopener" className="text-xs text-blue-600 hover:underline break-all flex items-center gap-1">
+                      <ExternalLink size={10} />
+                      {researchResult.discovered.website.url}
+                    </a>
+                  ) : (
+                    <span className="text-xs text-slate-400">لم يُعثر عليه</span>
+                  )}
+                </div>
+
+                {/* Google Maps */}
+                <div className="bg-white rounded-xl p-4 border border-indigo-100">
+                  <div className="flex items-center justify-end gap-2 text-indigo-600 font-black text-xs mb-2">
+                    <MapPin size={14} /> الموقع الجغرافي
+                  </div>
+                  {researchResult.extracted?.maps ? (
+                    <div className="text-xs text-slate-700">
+                      <p className="font-bold">{researchResult.extracted.maps.name}</p>
+                      <p className="text-slate-500 mt-1">{researchResult.extracted.maps.address}</p>
+                      {researchResult.extracted.maps.rating && (
+                        <p className="text-amber-500 mt-1">⭐ {researchResult.extracted.maps.rating}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400">لم يُعثر عليه</span>
+                  )}
+                </div>
+
+                {/* السوشيال ميديا */}
+                <div className="bg-white rounded-xl p-4 border border-indigo-100">
+                  <div className="flex items-center justify-end gap-2 text-indigo-600 font-black text-xs mb-2">
+                    <MessageSquare size={14} /> التواصل الاجتماعي
+                  </div>
+                  {researchResult.discovered?.socialMedia?.length > 0 ? (
+                    <div className="space-y-1">
+                      {researchResult.discovered.socialMedia.slice(0, 3).map((s: any, i: number) => (
+                        <a key={i} href={s.url} target="_blank" rel="noopener" className="block text-xs text-blue-600 hover:underline">
+                          {s.type}: {s.url.split('/').pop()}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400">لم يُعثر عليه</span>
+                  )}
+                </div>
+              </div>
+
+              {researchResult.summary?.sourcesFound?.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2 justify-end">
+                  {researchResult.summary.sourcesFound.map((s: string, i: number) => (
+                    <span key={i} className="px-2 py-1 bg-green-100 text-green-700 rounded text-[9px] font-bold uppercase">
+                      ✓ {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-6 pt-6 border-t border-slate-50">
-            <h4 className="font-black text-slate-800 text-sm">روابط البحث الفعلي (Enrichment Hub)</h4>
+            <h4 className="font-black text-slate-800 text-sm">روابط البحث الفعلي (Enrichment Hub) - أو أدخلها يدوياً</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-end gap-1">الموقع الإلكتروني <Globe size={10} /></label>
