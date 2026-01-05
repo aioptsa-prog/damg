@@ -1,0 +1,13 @@
+{
+  "name": "lead-enricher",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lead Enrichment Engine - نظام بحث ذكي متعدد الطبقات",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0"
+  }
+}

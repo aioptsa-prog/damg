@@ -21,7 +21,12 @@ import {
   ListChecks, 
   Square, 
   CheckSquare, 
-  Calendar 
+  Calendar,
+  Search,
+  Globe,
+  Instagram,
+  Twitter,
+  MapPin
 } from 'lucide-react';
 import { Lead, Report, LeadActivity, Task, UserRole } from '../types';
 import { db } from '../services/db';
@@ -52,6 +57,8 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, onUpdateLead, onDeleteL
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [showForgeTab, setShowForgeTab] = useState(false);
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [enrichmentResult, setEnrichmentResult] = useState<any>(null);
   const user = authService.getCurrentUser();
 
   useEffect(() => {
@@ -148,9 +155,97 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, onUpdateLead, onDeleteL
     setIsSubmittingNote(false);
   };
 
+  const handleEnrichLead = async () => {
+    setIsEnriching(true);
+    setEnrichmentResult(null);
+    try {
+      const forgeUrl = (import.meta as any).env?.VITE_FORGE_URL || 'http://localhost:8081';
+      const response = await fetch(`${forgeUrl}/v1/api/leads/enrich.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lead: {
+            name: lead.companyName,
+            city: lead.city,
+            phone: lead.phone,
+            category: lead.activity
+          }
+        })
+      });
+      const data = await response.json();
+      if (data.ok) {
+        setEnrichmentResult(data);
+        // تحديث البيانات المحلية
+        if (data.enriched?.maps?.address) {
+          setLocalLead(prev => ({ ...prev, address: data.enriched.maps.address }));
+        }
+        if (data.enriched?.website?.url) {
+          setLocalLead(prev => ({ ...prev, website: data.enriched.website.url }));
+        }
+      } else {
+        alert('فشل الإثراء: ' + (data.error || 'خطأ غير معروف'));
+      }
+    } catch (err: any) {
+      alert('خطأ في الاتصال: ' + err.message);
+    } finally {
+      setIsEnriching(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20 text-right">
       {isRegenerating && <LoadingOverlay message="جاري تحليل التغييرات الجديدة وتحديث الاستراتيجية..." />}
+      {isEnriching && <LoadingOverlay message="جاري البحث عن بيانات إضافية للعميل..." />}
+      
+      {enrichmentResult && (
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-3xl p-6 mb-6">
+          <div className="flex flex-row-reverse items-center justify-between mb-4">
+            <h3 className="font-black text-indigo-800 flex flex-row-reverse items-center gap-2">
+              <Search size={20} /> نتائج الإثراء
+            </h3>
+            <span className="text-xs font-bold text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full">
+              ثقة: {Math.round((enrichmentResult.summary?.totalConfidence || 0) * 100)}%
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-right">
+            {enrichmentResult.enriched?.maps && (
+              <div className="bg-white rounded-2xl p-4 border border-indigo-100">
+                <div className="flex flex-row-reverse items-center gap-2 text-indigo-600 font-black text-xs mb-2">
+                  <MapPin size={14} /> الموقع
+                </div>
+                <p className="text-sm text-slate-700">{enrichmentResult.enriched.maps.address}</p>
+                {enrichmentResult.enriched.maps.rating && (
+                  <p className="text-xs text-slate-500 mt-1">التقييم: {enrichmentResult.enriched.maps.rating} ⭐</p>
+                )}
+              </div>
+            )}
+            {enrichmentResult.enriched?.website && (
+              <div className="bg-white rounded-2xl p-4 border border-indigo-100">
+                <div className="flex flex-row-reverse items-center gap-2 text-indigo-600 font-black text-xs mb-2">
+                  <Globe size={14} /> الموقع الإلكتروني
+                </div>
+                <a href={enrichmentResult.enriched.website.url} target="_blank" rel="noopener" className="text-sm text-blue-600 hover:underline break-all">
+                  {enrichmentResult.enriched.website.url}
+                </a>
+              </div>
+            )}
+            {Object.keys(enrichmentResult.enriched?.socialMedia || {}).length > 0 && (
+              <div className="bg-white rounded-2xl p-4 border border-indigo-100">
+                <div className="flex flex-row-reverse items-center gap-2 text-indigo-600 font-black text-xs mb-2">
+                  <Instagram size={14} /> التواصل الاجتماعي
+                </div>
+                <div className="space-y-1">
+                  {Object.entries(enrichmentResult.enriched.socialMedia).map(([platform, data]: [string, any]) => (
+                    <a key={platform} href={data.url} target="_blank" rel="noopener" className="block text-xs text-blue-600 hover:underline">
+                      {platform}: @{data.handle}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       <div className="flex flex-col md:flex-row-reverse items-start md:items-center justify-between gap-6">
         <div className="flex flex-row-reverse items-center gap-6">
@@ -163,6 +258,9 @@ const LeadDetails: React.FC<LeadDetailsProps> = ({ lead, onUpdateLead, onDeleteL
         <div className="flex flex-wrap gap-3 flex-row-reverse">
           <button onClick={handleRegenerateReport} className="bg-primary/5 text-primary border border-primary/20 px-6 py-3 rounded-2xl font-black text-sm flex flex-row-reverse items-center gap-2 hover:bg-primary hover:text-white transition-all group">
             <Sparkles size={18} /> تحديث التقرير (v{reports[0]?.versionNumber || 1}+)
+          </button>
+          <button onClick={handleEnrichLead} disabled={isEnriching} className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-xl flex flex-row-reverse items-center gap-2 hover:from-indigo-600 hover:to-purple-600 transition-all disabled:opacity-50">
+            {isEnriching ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />} إثراء البيانات
           </button>
           <button onClick={onGenerateSurvey} className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-sm shadow-xl flex flex-row-reverse items-center gap-2">
             <ListChecks size={18} /> الاستبيان الذكي
