@@ -71,39 +71,46 @@ git subtree push --prefix=OP-Target-Sales-Hub-1 \
 
 ## Environment Variables
 
-### Forge (`forge.op-tg.com/.env`)
+### ⚠️ Security Warning
 
-```env
-# CORS
-ALLOWED_ORIGINS=http://localhost:3000,https://op-target.vercel.app
+**NEVER commit `.env` files to git!** They contain secrets.
 
-# Rate Limiting
-RATE_LIMIT_WHATSAPP=30
-RATE_LIMIT_JOBS=10
+If you accidentally committed `.env`:
+1. **Rotate ALL keys immediately** (Gemini, OpenAI, WhatsApp, JWT, DB)
+2. Run `git rm --cached .env` to stop tracking
+3. Consider using `git filter-repo` to clean history
 
-# Secrets (never commit!)
-INTERNAL_SECRET=xxx
-GEMINI_API_KEY=xxx
-OPENAI_API_KEY=xxx
-WHATSAPP_API_TOKEN=xxx
-```
+### Setup Instructions
 
-### OP-Target (`OP-Target-Sales-Hub-1/.env`)
+1. Copy the example files:
+   ```bash
+   cp forge.op-tg.com/.env.example forge.op-tg.com/.env
+   cp OP-Target-Sales-Hub-1/.env.example OP-Target-Sales-Hub-1/.env
+   cp forge.op-tg.com/worker/.env.example forge.op-tg.com/worker/.env
+   ```
 
-```env
-# Database
-DATABASE_URL=postgresql://...
+2. Fill in your values (see `.env.example` for documentation)
 
-# Auth
-JWT_SECRET=xxx
+3. For Vercel deployment:
+   - Add environment variables in Vercel Dashboard → Settings → Environment Variables
+   - Required: `DATABASE_URL`, `JWT_SECRET`, `ENCRYPTION_SECRET`
 
-# AI
-GEMINI_API_KEY=xxx
-OPENAI_API_KEY=xxx
+4. For VPS deployment:
+   - Copy `.env` files to server
+   - Ensure proper file permissions: `chmod 600 .env`
 
-# Integration
-FORGE_API_BASE_URL=http://localhost:8081
-```
+### Required Variables
+
+| Project | Variable | Description |
+|---------|----------|-------------|
+| Forge | `INTERNAL_SECRET` | Worker HMAC auth |
+| Forge | `ALLOWED_ORIGINS` | CORS allowlist |
+| Forge | `WHATSAPP_API_TOKEN` | WhatsApp Business API |
+| OP-Target | `DATABASE_URL` | PostgreSQL connection |
+| OP-Target | `JWT_SECRET` | JWT signing key |
+| OP-Target | `ENCRYPTION_SECRET` | Data encryption |
+| Worker | `BASE_URL` | Forge API URL |
+| Worker | `INTERNAL_SECRET` | Must match Forge |
 
 ---
 
