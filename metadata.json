@@ -1,0 +1,9 @@
+{
+  "name": "OP Target Sales Hub",
+  "description": "نظام تمكين المبيعات الذكي لشركة الهدف الأمثل للتسويق - الإصدار المترابط مع قاعدة بيانات Neon.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

@@ -1,0 +1,71 @@
+
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OP Target Sales Hub API",
+    "description": "API documentation for the OP Target Sales Hub sales enablement platform.",
+    "version": "2.5.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Development Server"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Successful login" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/leads": {
+      "get": {
+        "summary": "List leads",
+        "responses": {
+          "200": { "description": "Array of leads" }
+        }
+      },
+      "post": {
+        "summary": "Create lead",
+        "responses": {
+          "201": { "description": "Lead created" }
+        }
+      }
+    },
+    "/reports/generate": {
+      "post": {
+        "summary": "Generate AI strategic report",
+        "responses": {
+          "200": { "description": "Report object" },
+          "429": { "description": "Rate limit exceeded" }
+        }
+      }
+    },
+    "/integrations/whatsapp/send": {
+      "post": {
+        "summary": "Send WhatsApp message via configured provider",
+        "responses": {
+          "200": { "description": "Message sent" }
+        }
+      }
+    }
+  }
+}
