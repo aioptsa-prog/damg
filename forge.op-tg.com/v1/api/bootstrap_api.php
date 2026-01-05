@@ -139,9 +139,9 @@ function require_api_auth()
 
 /**
  * Require specific role for API endpoint
- * @deprecated Use require_role() from lib/api_auth.php
+ * @deprecated Use require_min_role() from lib/api_auth.php
  */
 function require_api_role($role)
 {
-    return require_role($role);
+    return require_min_role($role);
 }

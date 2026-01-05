@@ -80,7 +80,7 @@ function require_api_user(): array {
  * @return array User data
  * @throws Exits with 403 if insufficient permissions
  */
-function require_role(string $minRole): array {
+function require_min_role(string $minRole): array {
     $user = require_api_user();
     
     $userRole = $user['role'] ?? 'sales';
