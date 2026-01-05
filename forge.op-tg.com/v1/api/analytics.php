@@ -7,18 +7,11 @@
  * For Superadmin: Shows all leads
  */
 
+require_once __DIR__ . '/../../lib/cors.php';
+handle_cors(['GET', 'OPTIONS']);
+
 require_once __DIR__ . '/bootstrap_api.php';
 require_once __DIR__ . '/../../lib/auth.php';
-
-// Handle CORS
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     send_error('Method not allowed', 'METHOD_NOT_ALLOWED', 405);

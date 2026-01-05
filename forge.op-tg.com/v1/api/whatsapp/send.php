@@ -1,23 +1,52 @@
 <?php
 /**
  * WhatsApp Send API
+ * Security: CORS Allowlist + Rate Limiting
  */
 
-// CORS headers FIRST
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+// ============================================
+// CORS Allowlist (Critical Security Fix)
+// ============================================
+$allowedOriginsEnv = getenv('ALLOWED_ORIGINS') ?: 'http://localhost:3000';
+$allowedOrigins = array_map('trim', explode(',', $allowedOriginsEnv));
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+if ($origin && in_array($origin, $allowedOrigins, true)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Vary: Origin");
+    header("Access-Control-Allow-Methods: POST, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Api-Key");
+} else if ($origin) {
+    http_response_code(403);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'CORS: origin not allowed'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
+// Preflight
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    http_response_code(204);
     exit;
 }
 
 require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/../../lib/rate_limit.php';
 
 $user = require_whatsapp_auth();
 $pdo = db();
+
+// ============================================
+// Rate Limiting (Critical Security Fix)
+// ============================================
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$userId = $user['id'] ?? 'anon';
+$rlKey = 'whatsapp_send:' . $userId . ':' . substr(md5($ip), 0, 8);
+
+// 30 requests per minute per user
+rate_limit_or_429($pdo, $rlKey, 30, 60);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

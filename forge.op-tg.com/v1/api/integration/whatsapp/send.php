@@ -7,6 +7,7 @@
  * Uses the existing Washeej provider.
  * 
  * SECURITY:
+ * - CORS Allowlist
  * - Behind INTEGRATION_AUTH_BRIDGE flag
  * - Requires valid integration token
  * - Rate limited (10 messages per minute per token)
@@ -16,7 +17,34 @@
  */
 
 declare(strict_types=1);
+
+// ============================================
+// CORS Allowlist (Critical Security Fix)
+// ============================================
+$allowedOriginsEnv = getenv('ALLOWED_ORIGINS') ?: 'http://localhost:3000';
+$allowedOrigins = array_map('trim', explode(',', $allowedOriginsEnv));
+
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+if ($origin && in_array($origin, $allowedOrigins, true)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Vary: Origin");
+    header("Access-Control-Allow-Methods: POST, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Integration-Token");
+} else if ($origin) {
+    http_response_code(403);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['error' => 'CORS: origin not allowed'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
+
+// Preflight
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
 require_once __DIR__ . '/../../../../bootstrap.php';
 require_once __DIR__ . '/../../../../lib/flags.php';
