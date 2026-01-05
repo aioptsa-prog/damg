@@ -1,0 +1,1 @@
+This directory stores uploaded files. Make sure it is writable by the web server user.

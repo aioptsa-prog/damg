@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>إرسال جماعي واتساب — Washeej API (نسخة كاملة)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='8' fill='%2300a86b'/%3E%3C/svg%3E">
+  <style>
+    :root{ --bg:#f6f8fa; --card:#fff; --border:#e6edf0; --text:#0b1b1a; --muted:#7a8893; --accent:#00a86b; --danger:#ff4d4f; }
+    *{box-sizing:border-box}
+    body{font-family:"Tajawal",system-ui,sans-serif;margin:0;background:var(--bg);color:var(--text);padding:28px;display:flex;justify-content:center}
+    .wrap{width:min(1120px,96%)}
+    h1{margin:4px 0 16px;text-align:center;color:var(--accent)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 6px 20px rgba(15,20,25,.04)}
+    label{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+    input,textarea,select{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;background:#fbfeff;font-size:14px}
+    textarea{resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 380px;gap:16px}
+    @media (max-width:980px){.row{grid-template-columns:1fr}}
+    .small{font-size:12.5px;color:var(--muted)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
+    .primary{background:var(--accent);color:#062116}
+    .secondary{background:#fff;border:1px solid var(--border);color:#7a8893}
+    .danger{background:var(--danger);color:#fff}
+    .meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+    .badge{background:#eef7f2;border:1px solid #d7efe4;color:#0b3e2d;padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px}
+    .log{background:#0b1720;color:#dff6ea;border-radius:8px;padding:10px;height:260px;overflow:auto;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;direction:ltr;text-align:left}
+    .hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+    .uploader{background:#fbfeff;border:1px dashed #cfe3d9;border-radius:10px;padding:10px}
+    .note{background:#f1fbf6;border:1px solid #dff3e8;color:#0a3f2a;padding:10px;border-radius:10px}
+    .warn{background:#fff6f6;border:1px solid #ffd6d6;color:#b20000;padding:10px;border-radius:10px}
+    code.kbd{background:#f2f4f7;border:1px solid #e3e8ef;border-radius:6px;padding:2px 6px;font-family:ui-monospace,Consolas,monospace}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>إرسال جماعي — Washeej QR API (قوالب + CSV + مرفقات)</h1>
+
+    <div class="card">
+      <div class="row">
+        <!-- يسار: الحقول الأساسية -->
+        <div>
+          <label>قائمة الأرقام (سطر لكل رقم أو مفصولة بفواصل)</label>
+          <textarea id="numbers" rows="8" placeholder="+9665XXXXXXXX\n+9665YYYYYYYY\n... أو مفصولة بفواصل ,"></textarea>
+          <div class="meta"><span class="badge" id="countBadge">0 رقم</span><span class="small">صيغة دولية مفضلة</span></div>
+
+          <label style="margin-top:10px">نوع المحتوى</label>
+          <select id="contentType">
+            <option value="text">نصي فقط</option>
+            <option value="image">صورة (imageUrl + caption اختياري)</option>
+            <option value="video">فيديو (videoUrl + caption اختياري)</option>
+            <option value="document">ملف (docUrl + caption اختياري)</option>
+            <option value="audio">صوت AAC (aacUrl)</option>
+          </select>
+          <div id="attachmentFields" style="margin-top:8px"></div>
+
+          <label style="margin-top:10px">نص الرسالة (يُستخدم كـ caption عند وجود مرفق)</label>
+          <textarea id="message" rows="6" placeholder="اكتب نص الرسالة هنا..."></textarea>
+
+          <label style="margin-top:10px">المرسلون (from) — يمكن إدخال عدة أرقام (سطر لكل رقم أو مفصولة بفواصل)</label>
+          <textarea id="fromList" rows="3" placeholder="+1234567890
++1234567891
+..."></textarea>
+
+          <div class="meta">
+            <label><input type="checkbox" id="useDelay"> تأخير</label>
+            <label style="margin-inline-start:6px"><input type="checkbox" id="randomDelay" checked> عشوائي</label>
+            <input id="minDelaySec" type="number" min="0" value="10" style="width:90px"/>
+            <span class="small">ث →</span>
+            <input id="maxDelaySec" type="number" min="0" value="60" style="width:90px"/>
+            <span class="small">ث</span>
+            <input id="delayMs" type="number" min="0" value="600" style="width:120px;display:none"/>
+            <span class="small" id="delayHint">بين 10–60 ثانية</span>
+            <label style="margin-inline-start:12px"><input type="checkbox" id="useDyn" checked> متغير خفي عشوائي وفريد لكل رسالة</label>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="sendBtn">إرسال لكل الأرقام</button>
+            <button class="danger" id="stopBtn">إيقاف الإرسال</button>
+            <button class="secondary" id="previewBtn">معاينة</button>
+            <button class="secondary" id="clearBtn">مسح الحقول</button>
+            <button class="secondary" id="cleanInputsBtn">تنظيف النصوص</button>
+          </div>
+
+          <div class="note" style="margin-top:10px">للاختبار فقط: المفتاح يظهر في الواجهة. في الإنتاج استخدم خادم وسيط (Proxy) لإضافة ترويسة Authorization ورفع الملفات ومعالجة CORS.</div>
+          <div class="warn" id="errorBox" style="display:none;margin-top:8px"></div>
+        </div>
+
+        <!-- يمين: إعدادات ورفع/CSV وسجل -->
+        <div>
+          <label>رابط API</label>
+          <input id="apiUrl" value="https://wa.washeej.com/api/qr/rest/send_message" />
+          <label style="margin-top:8px">Authorization (Bearer token)</label>
+          <input id="authToken" placeholder="JWT هنا" />
+          <div class="hr"></div>
+
+          <label>نقطة رفع ملف (اختياري — يجب أن تُرجع { url: &quot;https://...&quot; })</label>
+          <input id="uploadEndpoint" placeholder="https://yourdomain.com/upload" />
+          <div class="uploader" style="margin-top:6px">
+            <input id="fileInput" type="file" />
+            <div class="actions" style="margin-top:6px"><button class="secondary" id="uploadBtn">رفع الملف</button><span class="small" id="uploadStatus">—</span></div>
+            <div class="small" id="uploadedUrlPreview" style="display:none"></div>
+          </div>
+
+          <div class="hr"></div>
+          <label>وارد مخصّص (CSV) — رسالة لكل عميل</label>
+          <div class="uploader" style="margin-top:6px">
+            <div class="small" style="margin-bottom:6px">CSV يجب أن يحتوي رأس أعمدة، أهمها <code class="kbd">to</code> (رقم المستلم). أعمدة اختيارية: <code class="kbd">name</code>, <code class="kbd">order_id</code>, <code class="kbd">caption</code>, <code class="kbd">imageUrl</code>, <code class="kbd">videoUrl</code>, <code class="kbd">docUrl</code>, <code class="kbd">aacUrl</code>…</div>
+            <input id="csvInput" type="file" accept=".csv,text/csv" />
+            <div class="actions" style="margin-top:6px">
+              <button class="secondary" id="loadCsvBtn">قراءة CSV</button>
+              <label style="margin-inline-start:8px"><input type="checkbox" id="useCsv"> استخدام CSV بدل قائمة الأرقام</label>
+            </div>
+            <div class="small" id="csvStatus">— لم يتم التحميل —</div>
+          </div>
+
+          <label style="margin-top:8px">قالب الرسالة (للتخصيص باستخدام CSV)</label>
+          <textarea id="templateBox" rows="4" placeholder="مثال: مرحباً {{name|عميلنا العزيز}}، تم شحن طلبك رقم {{order_id}}."></textarea>
+
+          <div class="hr"></div>
+          <label>السجل</label>
+          <div class="log" id="logBox">— لا عمليات —</div>
+          <div class="meta"><span class="small">نجح: <b id="okCount">0</b></span><span class="small">فشل: <b id="failCount">0</b></span><span class="small">المتبقي: <b id="remainingCount">0</b></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    'use strict';
+    // ===== عناصر =====
+    const $ = id => document.getElementById(id);
+    const numbersEl=$('numbers'), countBadge=$('countBadge'), messageEl=$('message'), apiUrlEl=$('apiUrl'), authTokenEl=$('authToken');
+    const fromListEl=$('fromList');
+    const logBox=$('logBox'), okC=$('okCount'), failC=$('failCount'), remC=$('remainingCount');
+    const sendBtn=$('sendBtn'), stopBtn=$('stopBtn'), previewBtn=$('previewBtn'), clearBtn=$('clearBtn'), cleanBtn=$('cleanInputsBtn');
+    const errBox=$('errorBox'), useDelay=$('useDelay'), delayMs=$('delayMs'), useDyn=$('useDyn');
+    const contentTypeEl=$('contentType'), attachmentFields=$('attachmentFields'), uploadEndpointEl=$('uploadEndpoint'), fileInput=$('fileInput'), uploadBtn=$('uploadBtn'), uploadStatus=$('uploadStatus'), uploadedUrlPreview=$('uploadedUrlPreview');
+    const csvInput=$('csvInput'), loadCsvBtn=$('loadCsvBtn'), useCsv=$('useCsv'), templateBox=$('templateBox'), csvStatus=$('csvStatus');
+    const randomDelay=$('randomDelay'), minDelaySec=$('minDelaySec'), maxDelaySec=$('maxDelaySec'), delayHint=$('delayHint');
+
+    // ===== أدوات =====
+    function log(m){ const t=new Date().toLocaleTimeString(); logBox.textContent = `${t} — ${m}\n` + logBox.textContent; }
+    function setError(m){ errBox.style.display=m? 'block':'none'; errBox.textContent=m||''; }
+    function parseNumbers(raw){ if(!raw) return []; raw=raw.replace(/\r/g,'\n').replace(/,/g,'\n'); return raw.split('\n').map(s=>s.trim()).filter(Boolean); }
+    function parseList(raw){ if(!raw) return []; raw=raw.replace(/\r/g,'\n').replace(/,/g,'\n'); return raw.split('\n').map(s=>s.trim()).filter(Boolean); }
+    function updateCount(){ const arr=parseNumbers(numbersEl.value); countBadge.textContent = arr.length + (arr.length===1?' رقم':' أرقام'); }
+    function sanitizeText(s){ if(!s) return ''; return s.replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069]/g,''); }
+
+    numbersEl.addEventListener('input', updateCount); updateCount();
+
+    // ===== تزامن واجهة التأخير =====
+    function syncDelayUI(){
+      const rand = randomDelay && randomDelay.checked;
+      if(delayMs){ delayMs.style.display = rand? 'none':'inline-block'; }
+      if(delayHint){ delayHint.textContent = rand? 'بين '+(minDelaySec.value||10)+'–'+(maxDelaySec.value||60)+' ثانية' : 'تأخير ثابت (مللي ثانية)'; }
+    }
+    randomDelay?.addEventListener('change', syncDelayUI);
+    minDelaySec?.addEventListener('input', syncDelayUI);
+    maxDelaySec?.addEventListener('input', syncDelayUI);
+    syncDelayUI();
+
+    // ===== حقول المرفقات =====
+    function renderAttachmentFields(){
+      const t = contentTypeEl.value; let html='';
+      if(t==='image'){
+        html += '<label>رابط الصورة (imageUrl)</label><input id="imageUrl" placeholder="https://...jpg">';
+        html += '<label style="margin-top:6px">Caption اختياري</label><textarea id="caption" rows="3"></textarea>';
+      }else if(t==='video'){
+        html += '<label>رابط الفيديو (videoUrl)</label><input id="videoUrl" placeholder="https://...mp4">';
+        html += '<label style="margin-top:6px">Caption اختياري</label><textarea id="caption" rows="3"></textarea>';
+      }else if(t==='document'){
+        html += '<label>رابط الملف (docUrl)</label><input id="docUrl" placeholder="https://...pdf">';
+        html += '<label style="margin-top:6px">Caption اختياري</label><textarea id="caption" rows="3"></textarea>';
+      }else if(t==='audio'){
+        html += '<label>رابط الصوت AAC (aacUrl)</label><input id="aacUrl" placeholder="https://...aac">';
+      }else{ html = '<div class="small">سيتم إرسال نص فقط.</div>'; }
+      attachmentFields.innerHTML = html;
+    }
+    contentTypeEl.addEventListener('change', renderAttachmentFields); renderAttachmentFields();
+
+    // ===== رفع ملف لنقطة رفع خارجية =====
+    uploadBtn.addEventListener('click', async ()=>{
+      setError(''); uploadStatus.textContent='جار الرفع...'; uploadedUrlPreview.style.display='none';
+      const ep = uploadEndpointEl.value.trim(); const f = fileInput.files && fileInput.files[0];
+      if(!ep){ setError('حدد نقطة رفع الملفات أولاً'); uploadStatus.textContent='فشل'; return; }
+      if(!f){ setError('اختر ملفًا'); uploadStatus.textContent='فشل'; return; }
+      try{
+        const fd=new FormData(); fd.append('file', f);
+        const res=await fetch(ep,{method:'POST',body:fd});
+        const txt=await res.text(); let data;
+        try{data=JSON.parse(txt);}catch{throw new Error('استجابة غير صالحة: '+txt)}
+        if(!data.url) throw new Error('الاستجابة لا تحتوي url');
+        const url=data.url; const t=contentTypeEl.value;
+        if(t==='image')$('imageUrl').value=url;
+        else if(t==='video')$('videoUrl').value=url;
+        else if(t==='document')$('docUrl').value=url;
+        else if(t==='audio')$('aacUrl').value=url;
+        uploadStatus.textContent='تم'; uploadedUrlPreview.style.display='block'; uploadedUrlPreview.textContent=url;
+      }catch(e){ setError('خطأ رفع: '+e.message); uploadStatus.textContent='فشل'; }
+    });
+
+    // ===== CSV + قوالب =====
+    function csvParse(text){
+      const rows=[]; let i=0, cur=[], cell='', q=false;
+      while(i<text.length){
+        const ch=text[i++];
+        if(q){
+          if(ch=='"'){ if(text[i]=='"'){ cell+='"'; i++; } else { q=false; } }
+          else { cell+=ch; }
+        } else {
+          if(ch=='"'){ q=true; }
+          else if(ch==','){ cur.push(cell); cell=''; }
+          else if(ch=='\n'){ cur.push(cell); rows.push(cur); cur=[]; cell=''; }
+          else if(ch=='\r'){ /* ignore */ }
+          else { cell+=ch; }
+        }
+      }
+      cur.push(cell); rows.push(cur); return rows;
+    }
+    function csvToObjects(text){
+      const rows=csvParse(text); if(!rows.length) return [];
+      const header=rows[0].map(h=>h.trim()); const out=[];
+      for(let r=1;r<rows.length;r++){
+        const row=rows[r]; if(row.every(x=>!String(x||'').trim())) continue;
+        const obj={}; for(let c=0;c<header.length;c++){ obj[header[c]] = (row[c]||'').trim(); }
+        out.push(obj);
+      }
+      return out;
+    }
+    function compileTemplate(tpl, row){
+      return (tpl||'').replace(/\{\{\s*([a-zA-Z0-9_]+)(?:\|([^}]+))?\s*\}\}/g, (m, key, def)=>{
+        const v = row[key]; const val = (v!==undefined && v!=='') ? v : (def!==undefined? def: '');
+        return String(val);
+      });
+    }
+
+    let csvRows=[];
+    $('loadCsvBtn').addEventListener('click', async ()=>{
+      try{
+        setError(''); csvStatus.textContent='جار القراءة...';
+        if(!csvInput.files||!csvInput.files[0]){ setError('اختر ملف CSV'); csvStatus.textContent='فشل'; return; }
+        const txt=await csvInput.files[0].text();
+        csvRows = csvToObjects(txt);
+        if(!csvRows.length){ setError('CSV بدون بيانات'); csvStatus.textContent='فارغ'; return; }
+        const list = csvRows.map(r=>r.to||'').filter(Boolean).join('\\n');
+        numbersEl.value=list; updateCount(); csvStatus.textContent=`تم التحميل: ${csvRows.length} صف`;
+      }catch(e){ setError('خطأ قراءة CSV: '+e.message); csvStatus.textContent='فشل'; }
+    });
+
+    // ===== المتغير الخفي (محارف بدون عرض) — عشوائي وفريد لكل رسالة =====
+    const HIDDEN_CODEPOINTS = [0x200B,0x200C,0x200D,0x2060,0xFEFF];
+    const HIDDEN_CHARS = HIDDEN_CODEPOINTS.map(cp => String.fromCharCode(cp));
+    function randomInt(max){ if(window.crypto?.getRandomValues){ const a=new Uint32Array(1); window.crypto.getRandomValues(a); return a[0]%max; } return Math.floor(Math.random()*max); }
+    function buildUniqueDyn(count){
+      const base=HIDDEN_CHARS.length; let L=1; while (Math.pow(base,L) < Math.max(count,base)) L++;
+      const space=Math.pow(base,L); const picks=new Set();
+      while(picks.size < count){ picks.add(randomInt(space)); }
+      const arr=[];
+      for(const n of picks){
+        let x=n, token='';
+        for(let d=0; d<L; d++){ const idx=x%base; token = HIDDEN_CHARS[idx] + token; x=Math.floor(x/base); }
+        arr.push(token);
+      }
+      return arr;
+    }
+    function injectDyn(text, token){
+      const base=sanitizeText(text||'');
+      if(base.length===0) return token+token+token;
+      const mid=Math.floor(base.length/2);
+      return token + base.slice(0,mid) + token + base.slice(mid) + token;
+    }
+
+    // ===== إرسال واحد =====
+    async function sendOne(apiUrl, token, payload){
+      const res=await fetch(apiUrl,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
+      const t=await res.text();
+      try{const j=JSON.parse(t); return {ok:res.ok && j.success!==false, data:j};}
+      catch{ return {ok:res.ok, data:t}; }
+    }
+
+    let stopRequested=false;
+    stopBtn.addEventListener('click', ()=>{ stopRequested=true; log('تم طلب إيقاف الإرسال'); });
+
+    // ===== زر الإرسال =====
+    sendBtn.addEventListener('click', async ()=>{
+      stopRequested=false; setError(''); logBox.textContent=''; okC.textContent='0'; failC.textContent='0'; remC.textContent='0';
+      const apiUrl=apiUrlEl.value.trim(), token=authTokenEl.value.trim();
+      const t=contentTypeEl.value; const baseText=messageEl.value.trim();
+      const froms = parseList(fromListEl.value);
+
+      let targets=[];
+      if(useCsv.checked){
+        if(!csvRows.length){ setError('فعّلت CSV لكن لم تحمّل بيانات'); return; }
+        targets = csvRows.map((row)=>({ to: row.to||'', row }));
+      } else {
+        const nums=parseNumbers(numbersEl.value);
+        if(nums.length===0){ setError('قائمة الأرقام فارغة'); return; }
+        targets = nums.map(n=>({ to:n, row:{} }));
+      }
+
+      if(!apiUrl||!token||froms.length===0){ setError('أكمل الحقول المطلوبة (ضع رقم/أرقام المُرسِل)'); return; }
+      if(t==='text' && !baseText && !useCsv.checked){ setError('نص الرسالة فارغ'); return; }
+      const idMap={image:'imageUrl',video:'videoUrl',document:'docUrl',audio:'aacUrl'}; const id=idMap[t];
+      if(t!=='text' && !useCsv.checked){
+        const el=id?$(id):null; if(id && (!el||!el.value.trim())){ setError('أدخل/ارفع رابط المرفق: '+id); return; }
+      }
+
+      if(!confirm(`سيتم الإرسال (${t}) إلى ${targets.length} سجل`)) return;
+
+      const tokens = useDyn.checked ? buildUniqueDyn(targets.length) : new Array(targets.length).fill('');
+      let ok=0, fail=0, remaining=targets.length; remC.textContent=remaining;
+
+      for(let i=0;i<targets.length;i++){
+        if(stopRequested){ log('تم إيقاف العملية'); break; }
+        const {to,row} = targets[i]; if(!to){ fail++; remaining--; remC.textContent=remaining; log('تخطّي صف بدون رقم'); continue; }
+        const from = froms[i % froms.length];
+        const dyn=tokens[i];
+        let p={requestType:'POST', token, from, to, messageType:t};
+
+        let msgText = baseText;
+        if(useCsv.checked && templateBox.value.trim()){ msgText = compileTemplate(templateBox.value, row); }
+
+        if(t==='text'){
+          p.text = useDyn.checked? injectDyn(msgText, dyn) : msgText;
+        } else if(t==='image'){
+          const u = (useCsv.checked? (row.imageUrl||'') : ($('imageUrl').value||'')).trim();
+          const c0 = (useCsv.checked? (row.caption||'') : ($('caption')?.value||'')).trim();
+          const caption = (c0 || msgText);
+          if(!u){ fail++; remaining--; remC.textContent=remaining; log('فشل: لا يوجد imageUrl'); continue; }
+          p.imageUrl=u; if(caption) p.caption = useDyn.checked? injectDyn(caption, dyn) : caption;
+        } else if(t==='video'){
+          const u = (useCsv.checked? (row.videoUrl||'') : ($('videoUrl').value||'')).trim();
+          const c0 = (useCsv.checked? (row.caption||'') : ($('caption')?.value||'')).trim();
+          const caption = (c0 || msgText);
+          if(!u){ fail++; remaining--; remC.textContent=remaining; log('فشل: لا يوجد videoUrl'); continue; }
+          p.videoUrl=u; if(caption) p.caption = useDyn.checked? injectDyn(caption, dyn) : caption;
+        } else if(t==='document'){
+          const u = (useCsv.checked? (row.docUrl||'') : ($('docUrl').value||'')).trim();
+          const c0 = (useCsv.checked? (row.caption||'') : ($('caption')?.value||'')).trim();
+          const caption = (c0 || msgText);
+          if(!u){ fail++; remaining--; remC.textContent=remaining; log('فشل: لا يوجد docUrl'); continue; }
+          p.docUrl=u; if(caption) p.caption = useDyn.checked? injectDyn(caption, dyn) : caption;
+        } else if(t==='audio'){
+          const u = (useCsv.checked? (row.aacUrl||'') : ($('aacUrl').value||'')).trim();
+          if(!u){ fail++; remaining--; remC.textContent=remaining; log('فشل: لا يوجد aacUrl'); continue; }
+          p.aacUrl=u;
+        }
+
+        log(`إرسال (${t}) ← من ${from} → إلى ${to} ...`);
+        try{
+          const r = await sendOne(apiUrl, token, p);
+          if(r.ok){ ok++; log('نجح: '+to); }
+          else { fail++; log('فشل: '+to+' — '+(typeof r.data==='string'? r.data : (r.data?.message||''))); }
+        } catch(e){ fail++; log('خطأ عند '+to+' — '+e); }
+
+        remaining--; okC.textContent=ok; failC.textContent=fail; remC.textContent=remaining;
+
+        if(useDelay.checked && !stopRequested){
+          let ms;
+          if(randomDelay && randomDelay.checked){
+            let min = Math.max(0, Number(minDelaySec.value)||10);
+            let max = Math.max(min, Number(maxDelaySec.value)||60);
+            const sec = min + Math.floor(Math.random() * (max - min + 1));
+            ms = sec * 1000;
+            log(`انتظار ${sec} ث قبل الرسالة التالية...`);
+          } else {
+            ms = Math.max(0, Number(delayMs.value)||600);
+            log(`انتظار ${Math.round(ms/1000)} ث (ثابت) قبل الرسالة التالية...`);
+          }
+          await new Promise(res=>setTimeout(res, ms));
+        }
+      }
+      log('انتهت العملية');
+    });
+
+    // ===== المعاينة =====
+    previewBtn.addEventListener('click', ()=>{
+      setError('');
+      const token=authTokenEl.value.trim();
+      const t=contentTypeEl.value; const baseText=messageEl.value.trim();
+      const froms = parseList(fromListEl.value);
+
+      let targets=[];
+      if(useCsv.checked){
+        if(!csvRows.length){ setError('CSV غير مُحمّل'); return; }
+        targets = csvRows.map(r=>({to:r.to||'', row:r}));
+      } else {
+        const nums=parseNumbers(numbersEl.value);
+        if(nums.length===0){ setError('قائمة الأرقام فارغة'); return; }
+        targets = nums.map(n=>({to:n, row:{}}));
+      }
+
+      if(froms.length===0){ setError('ضع رقم/أرقام المُرسِل'); return; }
+      const tokens = useDyn.checked ? buildUniqueDyn(targets.length) : new Array(targets.length).fill('');
+      let out='';
+      for(let i=0;i<targets.length;i++){
+        const {to,row} = targets[i]; if(!to) continue;
+        const dyn=tokens[i];
+        const from = froms[i % froms.length];
+        let p={requestType:'POST', token, from, to, messageType:t};
+
+        let msgText = baseText;
+        if(useCsv.checked && templateBox.value.trim()){ msgText = compileTemplate(templateBox.value, row); }
+
+        if(t==='text') p.text = useDyn.checked? injectDyn(msgText, dyn) : msgText;
+        else if(t==='image'){
+          const u=row.imageUrl||($('imageUrl')?.value||'');
+          const c=row.caption||($('caption')?.value||'');
+          p.imageUrl=u; const caption=c||msgText;
+          if(caption) p.caption = useDyn.checked? injectDyn(caption, dyn) : caption;
+        }
+        else if(t==='video'){
+          const u=row.videoUrl||($('videoUrl')?.value||'');
+          const c=row.caption||($('caption')?.value||'');
+          p.videoUrl=u; const caption=c||msgText;
+          if(caption) p.caption = useDyn.checked? injectDyn(caption, dyn) : caption;
+        }
+        else if(t==='document'){
+          const u=row.docUrl||($('docUrl')?.value||'');
+          const c=row.caption||($('caption')?.value||'');
+          p.docUrl=u; const caption=c||msgText;
+          if(caption) p.caption = useDyn.checked? injectDyn(caption, dyn) : caption;
+        }
+        else if(t==='audio'){
+          const u=row.aacUrl||($('aacUrl')?.value||'');
+          p.aacUrl=u;
+        }
+        out += JSON.stringify(p, null, 2) + "\n\n";
+      }
+      logBox.textContent = out; alert('تم إنشاء المعاينة (قائمة/CSV + متغير خفي في أول/وسط/آخر + تدوير المُرسِل).');
+    });
+
+    // ===== تنظيف ومدخلات =====
+    cleanBtn.addEventListener('click', ()=>{
+      numbersEl.value=sanitizeText(numbersEl.value);
+      messageEl.value=sanitizeText(messageEl.value);
+      fromListEl.value=sanitizeText(fromListEl.value);
+      updateCount();
+      alert('تم تنظيف المحارف غير المرئية من المدخلات.');
+    });
+    clearBtn.addEventListener('click', ()=>{
+      if(!confirm('مسح كل الحقول؟')) return;
+      numbersEl.value=''; messageEl.value=''; fromListEl.value='';
+      logBox.textContent='— لا عمليات —'; okC.textContent='0'; failC.textContent='0'; remC.textContent='0';
+      setError(''); updateCount();
+    });
+  })();
+  </script>
+</body>
+</html>

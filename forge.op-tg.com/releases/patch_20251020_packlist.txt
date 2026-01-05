@@ -1,0 +1,14 @@
+admin/release_preflight.php
+admin/validate_post_deploy.php
+admin/cleanup_safe_reset.php
+admin/retention_purge.php
+admin/dashboard.php
+admin/fetch.php
+agent/fetch.php
+lib/providers.php
+api/report_results.php
+tools/release/preflight.php
+tools/release/validate_post_deploy.php
+tools/monitor/synthetic.php
+tools/ops/cleanup_safe_reset.php
+tools/ops/retention_purge.php

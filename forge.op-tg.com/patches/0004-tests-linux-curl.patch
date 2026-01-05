@@ -1,0 +1,42 @@
+*** Begin Patch
+*** Add File: tools/tests/test_hmac_curl.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_URL=${BASE_URL:-"http://127.0.0.1:8080"}
+WORKER_ID=${WORKER_ID:-"dev-curl"}
+INTERNAL_SECRET=${INTERNAL_SECRET:-"dev-secret"}
+WORKER_SECRET=${WORKER_SECRET:-""}
+
+json_pp(){ python - <<'PY' 2>/dev/null || cat
+import sys, json
+try:
+    print(json.dumps(json.load(sys.stdin), ensure_ascii=False, indent=2))
+except Exception:
+    sys.stdout.write(sys.stdin.read())
+PY
+}
+
+body_sha(){
+  openssl dgst -sha256 | awk '{print $2}'
+}
+
+hmac_sign(){
+  local method="$1" path="$2" sha="$3" ts="$4" secret="$5"
+  local msg
+  msg="$(printf '%s|%s|%s|%s' "${method^^}" "$path" "$sha" "$ts")"
+  printf '%s' "$msg" | openssl dgst -sha256 -hmac "$secret" | awk '{print $2}'
+}
+
+curl_j(){ curl -sS -H 'Content-Type: application/json' "$@"; }
+
+echo "Base: $BASE_URL | Worker: $WORKER_ID"
+
+path='/api/heartbeat.php'
+hb_body='{"hello":"world"}'
+ts=$(date +%s)
+sha=$(printf '%s' "$hb_body" | body_sha)
+sign=$(hmac_sign 'POST' "$path" "$sha" "$ts" "$INTERNAL_SECRET")
+resp=$(curl_j -X POST -H "X-Worker-Id: $WORKER_ID" -H "X-Auth-TS: $ts" -H "X-Auth-Sign: $sign" -H "X-Worker-Secret: $WORKER_SECRET" -w '\n%{http_code}' --data "$hb_body" "$BASE_URL$path")
+
+*** End Patch

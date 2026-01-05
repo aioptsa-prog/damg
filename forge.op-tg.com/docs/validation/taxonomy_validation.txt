@@ -1,0 +1,37 @@
+Taxonomy Validation Report
+Generated at: 2025-10-22 13:04:48
+JSON status: VALID
+Total nodes: 6223
+Max depth: 5
+Unique slugs: 6223 / total slugs: 6223
+Top-level domains (count=30):
+ - technology--it
+ - medical--health
+ - beauty--care
+ - food--restaurants
+ - public-services
+ - government--law
+ - education--training
+ - real-estate--construction
+ - travel--tourism
+ - media--entertainment
+ - agriculture--farming
+ - energy--utilities
+ - automotive--transportation
+ - finance--banking
+ - retail--e-commerce
+ - sports--fitness
+ - arts--culture
+ - home--garden
+ - pets--animals
+ - events--conferences
+ - nonprofit--ngos
+ - science--research
+ - manufacturing--industry
+ - logistics--supply-chain
+ - hr--employment
+ - security--defense
+ - environment--sustainability
+ - hospitality--hotels
+ - cleaning--maintenance
+ - telecommunications--networking

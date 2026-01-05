@@ -1,0 +1,1 @@
+See .env.example, set CHROME_EXE and CHROME_ARGS if needed. First run: worker_run.bat. Continuous: worker_service.bat. Logs in worker\logs.

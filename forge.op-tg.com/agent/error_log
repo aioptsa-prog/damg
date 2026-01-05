@@ -1,0 +1,2 @@
+[18-Nov-2025 01:47:34 Asia/Riyadh] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home2/optg/forge.op-tg.com/layout_header.php:6) in /home2/optg/forge.op-tg.com/lib/auth.php on line 25
+[20-Nov-2025 17:38:58 Asia/Riyadh] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home2/optg/forge.op-tg.com/layout_header.php:6) in /home2/optg/forge.op-tg.com/lib/auth.php on line 25

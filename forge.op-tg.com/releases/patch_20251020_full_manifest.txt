@@ -1,0 +1,18 @@
+Patch: 2025-10-20 FULL — Admin wrappers, dashboard links, map UX, providers, internal pipeline
+
+Includes:
+- Admin wrappers for ops/release tools (require admin):
+  admin/release_preflight.php, admin/validate_post_deploy.php, admin/cleanup_safe_reset.php, admin/retention_purge.php
+- Dashboard button fix + quick actions for ops
+- Map UX: radius circle + auto-fit refinements in admin/agent fetch pages
+- Providers: pagination fixes/tuning, bug fix in providers.php
+- API ingestion: report_results robustness maintained after fixes
+- Ops: build_patch helper
+
+Post-deploy:
+1) Login as admin
+2) /admin/release_preflight.php → PASS
+3) /admin/synthetic.php → ok:true
+4) /admin/validate_post_deploy.php → GO/NO-GO JSON with counters
+5) /admin/retention_purge.php?dry-run=1 → retention summary
+6) Try a broad fetch (exhaustive + ignore TTL) and confirm preview/add counts increase

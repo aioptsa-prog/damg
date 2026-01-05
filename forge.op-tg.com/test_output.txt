@@ -1,0 +1,24 @@
+PHP Warning:  Module "openssl" is already loaded in Unknown on line 0
+PHP Warning:  Module "mbstring" is already loaded in Unknown on line 0
+PHP Warning:  Module "fileinfo" is already loaded in Unknown on line 0
+
+Warning: Module "openssl" is already loaded in Unknown on line 0
+
+Warning: Module "mbstring" is already loaded in Unknown on line 0
+
+Warning: Module "fileinfo" is already loaded in Unknown on line 0
+Testing Leads API - Step by Step
+==================================
+
+ظ£ô Database loaded
+ظ£ô PDO connection established
+
+Checking tables...
+  ظ£ô leads: 2949 records
+  ظ£ô categories: 6330 records
+  ظ£ù geo_cities: ERROR - SQLSTATE[HY000]: General error: 1 no such table: geo_cities
+  ظ£ù geo_districts: ERROR - SQLSTATE[HY000]: General error: 1 no such table: geo_districts
+
+Testing leads query...
+  ظ£ù Query failed: SQLSTATE[HY000]: General error: 1 no such table: geo_cities
+  File: D:\projects\forge.op-tg.com\forge.op-tg.com\v1\api\test_debug.php:66

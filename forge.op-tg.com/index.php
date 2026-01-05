@@ -1,0 +1,1 @@
+<?php require_once __DIR__ . '/bootstrap.php'; $u=current_user(); header('Location: ' . linkTo($u?($u['role']==='admin'?'admin/dashboard.php':'agent/dashboard.php'):'auth/login.php')); exit;

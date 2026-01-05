@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptForge - إنشاء حملة بحث</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        h2 {
+            color: #4a5568;
+            margin: 30px 0 15px;
+            font-size: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status-box {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .status-box h3 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .status-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge.pending {
+            background: #fef3c7;
+            color: #78350f;
+        }
+
+        .badge.error {
+            background: #fecaca;
+            color: #7f1d1d;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 OptForge - إنشاء حملة بحث</h1>
+
+        <div id="loginSection">
+            <h2>🔐 تسجيل الدخول</h2>
+            <div class="form-group">
+                <label>رقم الجوال</label>
+                <input type="text" id="loginMobile" value="590000000" placeholder="05xxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="loginPassword" value="ops123" placeholder="********">
+            </div>
+            <button onclick="login()">تسجيل الدخول</button>
+        </div>
+
+        <div id="campaignSection" style="display: none;">
+            <h2>📋 بيانات الحملة</h2>
+
+            <div class="form-group">
+                <label>كلمة البحث</label>
+                <input type="text" id="query" value="مطاعم" placeholder="مثال: مطاعم، مقاهي، عيادات">
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>التصنيف</label>
+                    <select id="category">
+                        <option value="">-- اختر التصنيف --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اللغة</label>
+                    <select id="language">
+                        <option value="ar">العربية</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>الإحداثيات (Latitude, Longitude)</label>
+                    <input type="text" id="coordinates" value="24.7136,46.6753" placeholder="24.7136,46.6753">
+                </div>
+                <div class="form-group">
+                    <label>نطاق البحث (كم)</label>
+                    <input type="number" id="radius" value="10" min="1" max="50">
+                </div>
+            </div>
+
+            <h2>⚙️ إعدادات متقدمة</h2>
+
+            <div class="row">
+                <div class="form-group">
+                    <label>الحد الأقصى للنتائج</label>
+                    <input type="number" id="maxResults" value="50" min="10" max="500">
+                </div>
+                <div class="form-group">
+                    <label>عدد الصفحات</label>
+                    <input type="number" id="maxPages" value="3" min="1" max="10">
+                </div>
+            </div>
+
+            <button onclick="createCampaign()">🚀 إنشاء الحملة</button>
+            <button onclick="logout()" style="background: #cbd5e0; color: #2d3748; margin-right: 10px;">
+                تسجيل خروج
+            </button>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <div id="statusSection" style="display: none;" class="status-box">
+            <h3>📊 حالة الحملة</h3>
+            <div id="statusContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let token = localStorage.getItem('token');
+        let currentJobId = null;
+        let statusInterval = null;
+
+        // Check if already logged in
+        if (token) {
+            checkAuth();
+        }
+
+        async function login() {
+            const mobile = document.getElementById('loginMobile').value;
+            const password = document.getElementById('loginPassword').value;
+
+            showAlert('جاري تسجيل الدخول...', 'info');
+
+            try {
+                const res = await fetch(`${API_BASE}/v1/api/auth/login.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile, password })
+                });
+
+                const data = await res.json();
+
+                if (data.ok && data.token) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    showAlert('تم تسجيل الدخول بنجاح!', 'success');
+                    showCampaignForm();
+                    loadCategories();
+                } else {
+                    showAlert(data.message || 'فشل تسجيل الدخول', 'error');
+                }
+            } catch (e) {
+                showAlert('خطأ في الاتصال: ' + e.message, 'error');
+            }
+        }
+
+        async function checkAuth() {
+            try {
+                const res = await fetch(`${API_BASE}/v1/api/auth/me.php`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 200) {
+                    showCampaignForm();
+                    loadCategories();
+                } else {
+                    localStorage.removeItem('token');
+                    token = null;
+                }
+            } catch (e) {
+                console.error('Auth check failed:', e);
+            }
+        }
+
+        function showCampaignForm() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('campaignSection').style.display = 'block';
+        }
+
+        async function loadCategories() {
+            try {
+                const res = await fetch(`${API_BASE}/v1/api/categories/index.php`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (data.ok && data.categories) {
+                    const select = document.getElementById('category');
+                    data.categories.slice(0, 20).forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to load categories:', e);
+            }
+        }
+
+        async function createCampaign() {
+            const query = document.getElementById('query').value;
+            const coords = document.getElementById('coordinates').value;
+            const radius = document.getElementById('radius').value;
+            const categoryId = document.getElementById('category').value;
+            const language = document.getElementById('language').value;
+            const maxResults = document.getElementById('maxResults').value;
+            const maxPages = document.getElementById('maxPages').value;
+
+            if (!query || !coords) {
+                showAlert('الرجاء إدخال كلمة البحث والإحداثيات', 'error');
+                return;
+            }
+
+            const [lat, lng] = coords.split(',').map(s => s.trim());
+
+            showAlert('جاري إنشاء الحملة...', 'info');
+
+            try {
+                const res = await fetch(`${API_BASE}/v1/api/campaigns/create.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        ll: `${lat},${lng}`,
+                        radius_km: parseInt(radius),
+                        category_id: categoryId ? parseInt(categoryId) : null,
+                        lang: language,
+                        region: 'sa',
+                        target_count: parseInt(maxResults),
+                        max_pages: parseInt(maxPages)
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.ok && data.job_id) {
+                    currentJobId = data.job_id;
+                    showAlert(`✅ تم إنشاء الحملة بنجاح! رقم الوظيفة: ${data.job_id}`, 'success');
+                    document.getElementById('statusSection').style.display = 'block';
+                    startStatusPolling();
+                } else {
+                    showAlert(data.message || 'فشل في إنشاء الحملة', 'error');
+                }
+            } catch (e) {
+                showAlert('خطأ: ' + e.message, 'error');
+            }
+        }
+
+        function startStatusPolling() {
+            if (statusInterval) clearInterval(statusInterval);
+
+            updateJobStatus();
+            statusInterval = setInterval(updateJobStatus, 3000);
+        }
+
+        async function updateJobStatus() {
+            if (!currentJobId) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/v1/api/campaigns/${currentJobId}.php`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (data.ok && data.job) {
+                    const job = data.job;
+                    const statusHtml = `
+                        <div class="status-item">
+                            <span>الحالة:</span>
+                            <span class="badge ${getBadgeClass(job.status)}">${getStatusText(job.status)}</span>
+                        </div>
+                        <div class="status-item">
+                            <span>النتائج:</span>
+                            <strong>${job.result_count || 0}</strong>
+                        </div>
+                        <div class="status-item">
+                            <span>التقدم:</span>
+                            <strong>${job.progress_count || 0}</strong>
+                        </div>
+                        <div class="status-item">
+                            <span>المحاولات:</span>
+                            <strong>${job.attempts || 0}</strong>
+                        </div>
+                        ${job.error ? `<div class="status-item" style="color: #e53e3e;"><span>خطأ:</span><span>${job.error}</span></div>` : ''}
+                    `;
+                    document.getElementById('statusContent').innerHTML = statusHtml;
+
+                    if (job.status === 'done' || job.status === 'failed') {
+                        clearInterval(statusInterval);
+                        if (job.status === 'done') {
+                            showAlert(`✅ اكتملت الحملة! تم العثور على ${job.result_count} نتيجة`, 'success');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Status update failed:', e);
+            }
+        }
+
+        function getBadgeClass(status) {
+            const map = {
+                'queued': 'pending',
+                'processing': 'pending',
+                'done': 'success',
+                'failed': 'error'
+            };
+            return map[status] || 'pending';
+        }
+
+        function getStatusText(status) {
+            const map = {
+                'queued': 'في الانتظار',
+                'processing': 'قيد المعالجة',
+                'done': 'مكتمل',
+                'failed': 'فشل'
+            };
+            return map[status] || status;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            token = null;
+            location.reload();
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+
+            if (type !== 'error') {
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+
+</html>

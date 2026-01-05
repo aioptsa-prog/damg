@@ -1,0 +1,36 @@
+# Local runtime artifacts (keep repo lean)
+
+# Worker dependencies and caches
+/worker/node_modules/
+/worker/node/
+/worker/ms-playwright/
+/worker/build/
+/worker/logs/
+/worker/.env
+/worker/worker.env
+
+# Server-side vendor cache used for portable ZIP builds
+/storage/vendor/
+
+# Build outputs / release artifacts
+/storage/releases/*.zip
+/storage/releases/*.exe
+/storage/releases/installer_meta.json
+/storage/releases/latest.json
+/releases/*.zip
+/releases/*.exe
+/releases/installer_meta.json
+/releases/latest.json
+
+# Logs and temp
+/storage/logs/
+/storage/tmp/
+
+# Editor/OS
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Root zips or ad-hoc bundles
+/*.zip

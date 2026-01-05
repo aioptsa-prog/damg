@@ -1,0 +1,1 @@
+<?php require_once __DIR__ . '/lib/system.php'; echo '<footer>'.htmlspecialchars(system_tagline_ar()).' — © '.date('Y').'</footer>'; ?></div></div></div></div></body></html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptForge - اختبار التوثيق</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .status {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .status.loading {
+            background: #e6f2ff;
+            border-color: #3182ce;
+            color: #2c5282;
+        }
+
+        .status.success {
+            background: #e6ffec;
+            border-color: #38a169;
+            color: #22543d;
+        }
+
+        .status.error {
+            background: #fff5f5;
+            border-color: #e53e3e;
+            color: #742a2a;
+        }
+
+        .test-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f7fafc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-item .icon {
+            font-size: 24px;
+        }
+
+        .test-item .details {
+            flex: 1;
+        }
+
+        .test-item .name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .test-item .info {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>✅ OptForge - اختبار العملية الكاملة</h1>
+        <p class="subtitle">اختبار شامل لنظام التوثيق والـ API</p>
+
+        <div id="status" class="status loading">
+            <strong>⏳ جاري التحميل...</strong><br>
+            انتظر قليلاً أثناء الاتصال بالخادم
+        </div>
+
+        <div id="results"></div>
+
+        <button id="testBtn" onclick="runTests()">🔄 إعادة الاختبار</button>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let testToken = null;
+
+        async function runTests() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            const btn = document.getElementById('testBtn');
+
+            btn.disabled = true;
+            resultsDiv.innerHTML = '';
+            statusDiv.className = 'status loading';
+            statusDiv.innerHTML = '<strong>⏳ جاري الاختبار...</strong>';
+
+            const results = [];
+
+            // Test 1: Check Authorization Header
+            try {
+                statusDiv.innerHTML = '<strong>🔍 اختبار 1/4:</strong> فحص Authorization Header...';
+                const res = await fetch(`${API_BASE}/test_auth_header.php`, {
+                    headers: { 'Authorization': 'Bearer test123' }
+                });
+                const data = await res.json();
+
+                results.push({
+                    name: 'Authorization Header Forwarding',
+                    icon: data.auth_header_found ? '✅' : '❌',
+                    info: data.auth_header_found
+                        ? `تم استقبال الـ header بنجاح من: ${data.source}`
+                        : 'فشل في استقبال Authorization header',
+                    success: data.auth_header_found
+                });
+            } catch (e) {
+                results.push({
+                    name: 'Authorization Header Test',
+                    icon: '❌',
+                    info: 'خطأ: ' + e.message,
+                    success: false
+                });
+            }
+
+            // Test 2: Login
+            try {
+                statusDiv.innerHTML = '<strong>🔑 اختبار 2/4:</strong> تسجيل الدخول...';
+                const res = await fetch(`${API_BASE}/v1/api/auth/login.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mobile: '590000000',
+                        password: 'ops123'
+                    })
+                });
+                const data = await res.json();
+
+                if (data.ok && data.token) {
+                    testToken = data.token;
+                    localStorage.setItem('token', testToken);
+                    results.push({
+                        name: 'تسجيل الدخول',
+                        icon: '✅',
+                        info: `نجح! Token: ${testToken.substring(0, 20)}...`,
+                        success: true
+                    });
+                } else {
+                    results.push({
+                        name: 'تسجيل الدخول',
+                        icon: '⚠️',
+                        info: data.message || 'فشل تسجيل الدخول - تحقق من كلمة المرور',
+                        success: false
+                    });
+                }
+            } catch (e) {
+                results.push({
+                    name: 'تسجيل الدخول',
+                    icon: '❌',
+                    info: 'خطأ: ' + e.message,
+                    success: false
+                });
+            }
+
+            // Test 3: Get Current User
+            if (testToken) {
+                try {
+                    statusDiv.innerHTML = '<strong>👤 اختبار 3/4:</strong> جلب بيانات المستخدم...';
+                    const res = await fetch(`${API_BASE}/v1/api/auth/me.php`, {
+                        headers: { 'Authorization': `Bearer ${testToken}` }
+                    });
+                    const data = await res.json();
+
+                    if (res.status === 200 && data.ok) {
+                        results.push({
+                            name: 'API Authentication (/auth/me)',
+                            icon: '✅',
+                            info: `HTTP 200 - مستخدم: ${data.user.name} (${data.user.role})`,
+                            success: true
+                        });
+                    } else {
+                        results.push({
+                            name: 'API Authentication',
+                            icon: '❌',
+                            info: `HTTP ${res.status} - ${data.message || 'فشل'}`,
+                            success: false
+                        });
+                    }
+                } catch (e) {
+                    results.push({
+                        name: 'API Authentication',
+                        icon: '❌',
+                        info: 'خطأ: ' + e.message,
+                        success: false
+                    });
+                }
+
+                // Test 4: Test Campaigns API
+                try {
+                    statusDiv.innerHTML = '<strong>📊 اختبار 4/4:</strong> اختبار Campaigns API...';
+                    const res = await fetch(`${API_BASE}/v1/api/campaigns/index.php`, {
+                        headers: { 'Authorization': `Bearer ${testToken}` }
+                    });
+                    const data = await res.json();
+
+                    if (res.status === 200) {
+                        results.push({
+                            name: 'Campaigns API',
+                            icon: '✅',
+                            info: `HTTP 200 - ${data.campaigns ? data.campaigns.length : 0} حملات`,
+                            success: true
+                        });
+                    } else {
+                        results.push({
+                            name: 'Campaigns API',
+                            icon: '⚠️',
+                            info: `HTTP ${res.status} - ${data.message || 'فشل'}`,
+                            success: res.status !== 401
+                        });
+                    }
+                } catch (e) {
+                    results.push({
+                        name: 'Campaigns API',
+                        icon: '❌',
+                        info: 'خطأ: ' + e.message,
+                        success: false
+                    });
+                }
+            }
+
+            // Display Results
+            resultsDiv.innerHTML = results.map(r => `
+                <div class="test-item">
+                    <div class="icon">${r.icon}</div>
+                    <div class="details">
+                        <div class="name">${r.name}</div>
+                        <div class="info">${r.info}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update Status
+            const allSuccess = results.every(r => r.success);
+            const someSuccess = results.some(r => r.success);
+
+            if (allSuccess) {
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = `
+                    <strong>✅ نجح الاختبار الكامل!</strong><br>
+                    جميع نقاط الاختبار نجحت. المنصة جاهزة للاستخدام! 🎉
+                `;
+            } else if (someSuccess) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `
+                    <strong>⚠️ نجح بعض الاختبارات</strong><br>
+                    بعض الوظائف تعمل لكن هناك مشاكل في البعض الآخر.
+                `;
+            } else {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `
+                    <strong>❌ فشل الاختبار</strong><br>
+                    تحقق من تشغيل الخادم وإعدادات .htaccess
+                `;
+            }
+
+            btn.disabled = false;
+        }
+
+        // Run tests on page load
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+
+</html>

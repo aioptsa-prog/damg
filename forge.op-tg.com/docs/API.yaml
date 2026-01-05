@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: Nexus (OptForge) API
+  version: 1.0.0
+  description: Core endpoints for admin and worker interactions. Admin endpoints require session + CSRF; worker endpoints use HMAC.
+servers:
+  - url: http://127.0.0.1:8080
+paths:
+  /api/category_search.php:
+    get:
+      summary: Category search (admin-only)
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: active_only
+          schema: { type: integer, enum: [0,1] }
+        - in: query
+          name: csrf
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: integer }
+                    name: { type: string }
+                    path: { type: string }
+                    icon:
+                      type: object
+                      properties:
+                        type: { type: string }
+                        value: { type: string }
+        '429': { description: Rate limited }
+  /api/jobs_multi_create.php:
+    post:
+      summary: Create multi-location job group (admin-only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [csrf, category_id, locations]
+              properties:
+                csrf: { type: string }
+                category_id: { type: integer }
+                base_query: { type: string }
+                multi_search: { type: boolean }
+                target_count: { type: integer, minimum: 1 }
+                locations:
+                  type: array
+                  items:
+                    type: object
+                    required: [ll]
+                    properties:
+                      ll: { type: string, example: "24.7136,46.6753" }
+                      radius_km: { type: integer, minimum: 1, maximum: 100 }
+                      city: { type: string }
+      responses:
+        '200':
+          description: Group creation summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  job_group_id: { type: integer }
+                  jobs_created_total: { type: integer }
+  /api/report_results.php:
+    post:
+      summary: Report ingestion results (worker)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_id, items]
+              properties:
+                job_id: { type: integer }
+                items: { type: array, items: { type: object } }
+                idempotency_key: { type: string }
+                cursor: { type: string }
+                done: { type: boolean }
+                extend_lease_sec: { type: integer }
+      responses:
+        '200':
+          description: Ingestion summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  added: { type: integer }
+                  duplicates: { type: integer }
+                  idempotent: { type: boolean }
+  /api/geo_point_city.php:
+    post:
+      summary: Geo resolve/suggest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              oneOf:
+                - properties:
+                    suggest: { type: boolean, const: true }
+                    q: { type: string }
+                    csrf: { type: string }
+                - properties:
+                    city_name: { type: string }
+                    csrf: { type: string }
+                - properties:
+                    lat: { type: number }
+                    lng: { type: number }
+                    strict_city: { type: boolean }
+                    csrf: { type: string }
+      responses:
+        '200': { description: Suggest list or resolved point }
+  /api/export_leads.php:
+    get:
+      summary: Export leads (CSV)
+      parameters:
+        - in: query
+          name: job_group_id
+          schema: { type: integer }
+      responses:
+        '200': { description: CSV content }
+  /api/telemetry_event.php:
+    post:
+      summary: Increment lightweight usage counters (admin-only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [csrf, event]
+              properties:
+                csrf: { type: string }
+                event: { type: string, enum: [ml_pin_add, ml_pin_remove, ml_geocode_ok, ml_geocode_fail] }
+      responses:
+        '200': { description: OK }
+components:
+  securitySchemes:
+    hmac:
+      type: http
+      scheme: bearer
+      bearerFormat: HMAC

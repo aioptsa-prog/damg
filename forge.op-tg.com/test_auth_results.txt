@@ -1,0 +1,38 @@
+
+Warning: Module "openssl" is already loaded in Unknown on line 0
+
+Warning: Module "mbstring" is already loaded in Unknown on line 0
+
+Warning: Module "fileinfo" is already loaded in Unknown on line 0
+
+ظـ¤ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـù
+ظـّ     Authentication & API Test Suite                  ظـّ
+ظـأظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـإ
+
+
+Warning: session_set_cookie_params(): Session cookie parameters cannot be changed after headers have already been sent in D:\projects\forge.op-tg.com\forge.op-tg.com\lib\auth.php on line 6
+≡اôï Test 1: Admin User Check
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+ظ£à Admin user found: Operations Admin (590000000)
+
+≡ا¤ Test 2: Login & Token Generation
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+Attempting login...
+ظ£à Token generated: 68dfd2feee8894f271f35a4fed16eb438852c0fa9c9ae131cac0f8e5171d93e0
+   Hash: 81c4eae34730616a979b4603298721ad80c74c25eb3ff0196beee8d6870399dd
+   Expires: 2026-01-26 00:10:07
+
+≡ا¤ Test 3: Token Validation
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+ظ£à Token validated successfully
+   User ID: 1
+   Name: Operations Admin
+   Role: admin
+
+≡اî Test 4: Simulated API Request
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+
+Fatal error: Uncaught Error: Call to undefined function curl_init() in D:\projects\forge.op-tg.com\forge.op-tg.com\test_auth_workflow.php:92
+Stack trace:
+#0 {main}
+  thrown in D:\projects\forge.op-tg.com\forge.op-tg.com\test_auth_workflow.php on line 92

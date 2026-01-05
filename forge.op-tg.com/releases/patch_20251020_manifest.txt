@@ -1,0 +1,25 @@
+Patch: 2025-10-20 Admin wrappers + fetch improvements
+
+Includes the following updated/added files:
+1) lib/providers.php
+2) admin/fetch.php
+3) agent/fetch.php
+4) admin/dashboard.php
+5) admin/release_preflight.php (NEW)
+6) admin/validate_post_deploy.php (NEW)
+7) admin/cleanup_safe_reset.php (NEW)
+8) admin/retention_purge.php (NEW)
+
+Notes:
+- The /tools folder is intentionally blocked via .htaccess on production. These admin/* wrappers allow executing operational tools via authenticated admin routes.
+- Google Text Search pagination and map fit-to-circle behavior are part of the fetch pages in this patch.
+- Dashboard link now points to /admin/retention_purge.php?dry-run=1.
+
+Deploy steps (cPanel/FTP):
+1) Upload the files preserving the same paths relative to the web root.
+2) Clear PHP opcache if enabled (visit /api/opcache_reset.php with maintenance flag+secret, or restart FPM/Apache).
+3) Verify:
+   - /admin/release_preflight.php returns PRE-FLIGHT: PASS
+   - /admin/synthetic.php returns JSON with ok:true
+   - /admin/validate_post_deploy.php shows a JSON decision with workers_online, dlq_last15, etc.
+   - /admin/retention_purge.php?dry-run=1 returns a retention summary (dry_run:true)

@@ -1,0 +1,40 @@
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Frontend (Vite/React)
+**/node_modules/
+**/dist/
+**/.vite/
+**/coverage/
+**/*.log
+
+# Backend (PHP)
+**/vendor/
+**/storage/
+**/cache/
+
+# DB files (SQLite)
+**/*.sqlite
+**/*.sqlite3
+**/*.db
+
+# Test artifacts
+**/playwright-report/
+**/test-results/
+
+# Worker profile data (Playwright/Chromium)
+**/profile-data/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~

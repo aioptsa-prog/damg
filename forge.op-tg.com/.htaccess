@@ -1,0 +1,45 @@
+AddDefaultCharset UTF-8
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# Forward Authorization header to PHP (required for Bearer token authentication)
+RewriteCond %{HTTP:Authorization} ^(.+)$
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Maintenance mode: if maintenance.flag exists, serve maintenance.html (but allow direct access to it)
+RewriteCond %{REQUEST_URI} !^/maintenance\.html$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/maintenance.flag -f
+RewriteRule ^ maintenance.html [L]
+
+  # Block access to hidden files (dotfiles)
+  RewriteRule (?i)/?\.(git|env|ht) - [F]
+
+  # Block direct access to sensitive folders even if per-folder .htaccess missing
+  RewriteRule ^(config|storage|tools)(/.*)?$ - [F]
+
+  # Enforce HTTPS if setting is enabled at app level (best via app redirect). Keep here as fallback only.
+  # Uncomment to force HTTPS at Apache level:
+  # RewriteCond %{HTTPS} !=on
+  # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php82” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php82 .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
+
+# Basic security headers (app also adds CSP via PHP)
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "same-origin"
+  Header always set X-XSS-Protection "1; mode=block"
+</IfModule>

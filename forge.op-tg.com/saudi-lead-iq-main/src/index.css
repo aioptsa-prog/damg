@@ -1,0 +1,318 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 221 83% 70%;
+
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 0 0% 100%;
+
+    --success: 158 64% 52%;
+    --success-foreground: 0 0% 100%;
+
+    --muted: 220 13% 91%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(262 83% 58%));
+    --gradient-success: linear-gradient(135deg, hsl(158 64% 52%), hsl(142 71% 45%));
+    --gradient-hero: linear-gradient(180deg, hsl(220 20% 97%), hsl(221 83% 95%));
+
+    --shadow-elegant: 0 10px 40px -10px hsl(221 83% 53% / 0.2);
+    --shadow-card: 0 4px 20px -2px hsl(222 47% 11% / 0.08);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 95%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 221 83% 53%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 221 83% 70%;
+
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 0 0% 100%;
+
+    --success: 158 64% 52%;
+    --success-foreground: 0 0% 100%;
+
+    --muted: 222 47% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 47% 15%;
+    --input: 222 47% 15%;
+    --ring: 221 83% 53%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(262 83% 58%));
+    --gradient-success: linear-gradient(135deg, hsl(158 64% 52%), hsl(142 71% 45%));
+    --gradient-hero: linear-gradient(180deg, hsl(222 47% 6%), hsl(222 47% 9%));
+
+    --shadow-elegant: 0 10px 40px -10px hsl(221 83% 53% / 0.4);
+    --shadow-card: 0 4px 20px -2px hsl(0 0% 0% / 0.3);
+
+    --sidebar-background: 222 47% 9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 47% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 47% 15%;
+    --sidebar-ring: 221 83% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "kern";
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  /* Gradient text - for text with gradient colors */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .rtl {
+    direction: rtl;
+  }
+}
+
+/* RTL Comprehensive Fixes */
+@layer base {
+
+  /* Global RTL for Arabic */
+  html[dir="rtl"] {
+    text-align: right;
+  }
+
+  /* Labels alignment - stronger selector */
+  html[dir="rtl"] label,
+  html[dir="rtl"] .space-y-2>label,
+  html[dir="rtl"] [class*="Label"] {
+    text-align: right !important;
+    display: block;
+  }
+
+  /* Input text alignment - stronger selector */
+  html[dir="rtl"] input,
+  html[dir="rtl"] textarea,
+  html[dir="rtl"] select,
+  html[dir="rtl"] .Input,
+  html[dir="rtl"] [class*="input"] {
+    text-align: right !important;
+    direction: rtl;
+  }
+
+  /* URLs and tokens stay LTR for readability */
+  html[dir="rtl"] input[type="url"],
+  html[dir="rtl"] input[type="password"],
+  html[dir="rtl"] input[placeholder*="http"],
+  html[dir="rtl"] input[placeholder*="Token"] {
+    text-align: left !important;
+    direction: ltr;
+  }
+
+  /* Phone numbers stay LTR */
+  html[dir="rtl"] input[type="tel"],
+  html[dir="rtl"] [dir="ltr"] {
+    text-align: left !important;
+    direction: ltr;
+  }
+
+  /* Fix icons in buttons */
+  html[dir="rtl"] button .lucide,
+  html[dir="rtl"] button svg {
+    margin-left: 0.5rem;
+    margin-right: 0;
+  }
+
+  /* Fix gaps and margins */
+  html[dir="rtl"] .ml-2 {
+    margin-left: 0;
+    margin-right: 0.5rem;
+  }
+
+  html[dir="rtl"] .ml-3 {
+    margin-left: 0;
+    margin-right: 0.75rem;
+  }
+
+  html[dir="rtl"] .mr-2 {
+    margin-right: 0;
+    margin-left: 0.5rem;
+  }
+
+  html[dir="rtl"] .mr-3 {
+    margin-right: 0;
+    margin-left: 0.75rem;
+  }
+
+  /* Fix padding */
+  html[dir="rtl"] .pl-3 {
+    padding-left: 0;
+    padding-right: 0.75rem;
+  }
+
+  html[dir="rtl"] .pr-3 {
+    padding-right: 0;
+    padding-left: 0.75rem;
+  }
+
+  html[dir="rtl"] .pl-10 {
+    padding-left: 0;
+    padding-right: 2.5rem;
+  }
+
+  html[dir="rtl"] .pr-10 {
+    padding-right: 0;
+    padding-left: 2.5rem;
+  }
+
+  /* Fix absolute positioned icons */
+  html[dir="rtl"] .left-3 {
+    left: auto;
+    right: 0.75rem;
+  }
+
+  html[dir="rtl"] .right-3 {
+    right: auto;
+    left: 0.75rem;
+  }
+
+  /* Tab lists */
+  html[dir="rtl"] [role="tablist"] {
+    flex-direction: row-reverse;
+  }
+
+  /* Dialog close button */
+  html[dir="rtl"] [data-radix-dialog-close] {
+    right: auto;
+    left: 1rem;
+  }
+
+  /* Select dropdown */
+  html[dir="rtl"] [role="combobox"] {
+    text-align: right;
+  }
+
+
+
+
+
+  /* Space between items */
+  html[dir="rtl"] .space-x-2> :not([hidden])~ :not([hidden]) {
+    margin-right: 0.5rem;
+    margin-left: 0;
+  }
+
+  html[dir="rtl"] .space-x-4> :not([hidden])~ :not([hidden]) {
+    margin-right: 1rem;
+    margin-left: 0;
+  }
+
+  /* Progress bar */
+  html[dir="rtl"] [role="progressbar"]>div {
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  /* Checkbox and radio alignment */
+  html[dir="rtl"] .items-center input[type="checkbox"],
+  html[dir="rtl"] .items-center input[type="radio"] {
+    margin-left: 0.5rem;
+    margin-right: 0;
+  }
+}

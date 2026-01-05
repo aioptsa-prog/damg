@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<meta charset="utf-8">
+<title>دليل تشغيل صفحة العمال</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+  :root{ --bg:#0b1220; --card:#0e1a2d; --muted:#9fb3d1; --fg:#eef3fb; --ok:#10b981; --bad:#ef4444; --warn:#f59e0b; --link:#93c5fd }
+  body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0}
+  .wrap{max-width:920px;margin:0 auto;padding:20px}
+  h1,h2,h3{color:#dbeafe}
+  a{color:var(--link)}
+  code,.kbd{background:#0a1629;border:1px solid #122643;padding:2px 6px;border-radius:6px;color:#cbe5ff}
+  .card{background:var(--card);border:1px solid #11233d;border-radius:12px;padding:16px;margin:14px 0}
+  ul{line-height:1.7}
+  .badge{display:inline-block;background:#12213a;border:1px solid #1e3357;border-radius:999px;padding:3px 8px;font-size:12px;color:#9fb3d1}
+  .badge.ok{background:rgba(16,185,129,.15);color:#b9f5db;border-color:rgba(16,185,129,.4)}
+  .badge.warn{background:#b45309;color:#fff}
+</style>
+<div class="wrap">
+  <h1>دليل تشغيل صفحة العمال</h1>
+  <div class="card">
+    <h2>الهدف</h2>
+    <p>هذه الصفحة توضح كيفية استخدام <b>صفحة الوحدات الطرفية (العمال)</b> لإدارة الأسطول، قراءة الحالة بسرعة، وإرسال الأوامر العامة أو الخاصة بكل عامل.</p>
+  </div>
+  <div class="card">
+    <h2>التصفية والبحث والترقيم</h2>
+    <ul>
+      <li>المرشحات: <span class=kbd>النشاط</span>، <span class=kbd>الإصدار</span>، و<span class=kbd>المتصلون الآن فقط</span>.</li>
+      <li>البحث: أدخل جزءًا من <span class=kbd>Worker ID</span> في خانة <b>بحث</b> ثم اضغط Enter.</li>
+      <li>الترقيم: استخدم <span class=kbd>السابق</span> و<span class=kbd>التالي</span> للتنقل بين الصفحات. يظهر شريط <span class=kbd>الصفحة X/Y</span> وعدّاد المطابقة.</li>
+      <li>حفظ التفضيلات: تُحفظ بعض الاختيارات محليًا ليعاد تطبيقها تلقائيًا.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>التحديث الحي</h2>
+    <ul>
+      <li>تُحدّث الحالة (النقطة، النص)، و<span class=kbd>آخر ظهور</span> (زمن نسبي)، و<span class=kbd>الإصدار</span>، وشرائح الأوامر <b>تلقائيًا</b> كل ~12 ثانية دون إعادة تحميل الصفحة.</li>
+      <li>يمكن تفعيل <span class=kbd>تحديث تلقائي</span> لإعادة التحميل الدوري إذا رغبت.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>الأوامر</h2>
+    <h3>أوامر عامة</h3>
+    <ul>
+      <li>إرسال أمر إلى جميع العمال: من القائمة المنسدلة <b>— أمر عام —</b> أو الأزرار السريعة: <span class=kbd>إيقاف للجميع</span>، <span class=kbd>استئناف للجميع</span>، <span class=kbd>مزامنة للجميع</span>، <span class=kbd>نبض للجميع</span>، <span class=kbd>تحديث للجميع</span>.</li>
+      <li>يظهر شريط <b>آخر أمر عام</b> مع <span class=kbd>rev</span> وعدّاد <i>كم عامل شوهد منذ ذلك</i>.</li>
+    </ul>
+    <h3>أوامر لكل عامل</h3>
+    <ul>
+      <li>من صف العامل: اختر الأمر ثم <b>إرسال</b>. يظهر شريحة <span class="badge warn">أمر معلّق</span> مع <span class=kbd>rev</span>.</li>
+      <li>بعد تطبيق العامل للأمر، يرسل إقرارًا ويُمسح الأمر المعلّق تلقائيًا، وتظهر شارة <span class="badge ok">تم التطبيق • rev: …</span>.</li>
+      <li>زر <b>مسح</b> يمكّنك من إزالة الأمر المعلّق يدويًا عند الحاجة.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>الرموز والحالات</h2>
+    <ul>
+      <li>النقطة الخضراء: <b>متصل</b>، الصفراء: <b>مؤقت</b>، الزرقاء: <b>خامل</b>، الحمراء: <b>غير متصل</b>.</li>
+      <li><b>قاطع</b>: هذا العامل لن يسحب مهامًا جديدة حتى إغلاق القاطع.</li>
+      <li>الاسم الودي يظهر تحت <span class=kbd>Worker ID</span> عند تعريفه من إدارة العامل.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>نصائح تشغيلية</h2>
+    <ul>
+      <li>عند إرسال <b>Restart</b> لعدد كبير، يستحسن جدولة على دفعات صغيرة.</li>
+      <li>في الأعطال: استخدم <span class=kbd>Pause</span> للتجميد الآمن ثم <span class=kbd>Resume</span> بعد التحقق.</li>
+      <li>إن ظهرت شريحة <b>أمر معلّق</b> طويلًا: تحقق من اتصال العامل أو تطابق <span class=kbd>INTERNAL_SECRET</span>.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>استكشاف الأخطاء</h2>
+    <ul>
+      <li>عامل لا يتلقى أوامر: تحقق من <span class=kbd>/api/worker_config.php</span> ومن رؤوس <span class=kbd>X-Worker-Id</span>.</li>
+      <li>إقرار لا يصل: راجع <span class=kbd>/api/worker_metrics.php</span> (يجب أن يرسل العامل <span class=kbd>last_applied_command_rev</span>).</li>
+      <li>عرض بطيء: خفض <span class=kbd>limit</span> أو فعّل <span class=kbd>المتصلون الآن فقط</span>؛ تأكد من وجود الفهارس.</li>
+    </ul>
+  </div>
+  <p style="color:#9fb3d1">© دليل داخلي — هذه الصفحة للتشغيل اليومي والدعم.</p>

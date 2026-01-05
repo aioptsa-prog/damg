@@ -1,0 +1,23 @@
+diff --git a/tools/release/preflight.php b/tools/release/preflight.php
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/tools/release/preflight.php
+@@
++<?php
++require_once __DIR__ . '/../../bootstrap.php';
++// ... file content as in repo ...
++
++?>
+
+diff --git a/tools/backup/run_release_backup.php b/tools/backup/run_release_backup.php
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/tools/backup/run_release_backup.php
+@@
++<?php
++require_once __DIR__ . '/../../bootstrap.php';
++// ... file content as in repo ...
++
++?>

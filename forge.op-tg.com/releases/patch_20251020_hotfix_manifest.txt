@@ -1,0 +1,19 @@
+Patch: 2025-10-20 HOTFIX — admin wrappers + provider pagination
+
+Files to upload (ensure paths and case match exactly):
+- admin/release_preflight.php
+- admin/validate_post_deploy.php
+- admin/cleanup_safe_reset.php
+- admin/retention_purge.php
+- admin/dashboard.php
+- lib/providers.php
+
+Purpose:
+- Fix 404 "File not found" by deploying new admin wrapper endpoints.
+- Ensure search providers paginate to the maximum (Google unlimited when exhaustive; Foursquare cursor pages; Radar paged) and do not stop while results continue.
+
+Post-deploy checks:
+1) Visit /admin/release_preflight.php → should print PRE-FLIGHT with details.
+2) Visit /admin/validate_post_deploy.php → JSON with decision and counters.
+3) Visit /admin/cleanup_safe_reset.php → JSON summary (logs written to storage/logs/cleanup.log).
+4) Visit /admin/retention_purge.php?dry-run=1 → retention summary (dry_run true), no deletions.

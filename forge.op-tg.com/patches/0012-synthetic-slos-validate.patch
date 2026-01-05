@@ -1,0 +1,33 @@
+diff --git a/tools/monitor/synthetic.php b/tools/monitor/synthetic.php
+new file mode 100644
+index 0000000..5555555
+--- /dev/null
++++ b/tools/monitor/synthetic.php
+@@
++<?php // ... new file content as in repo ... ?>
+
+diff --git a/docs/SLOs.md b/docs/SLOs.md
+new file mode 100644
+index 0000000..6666666
+--- /dev/null
++++ b/docs/SLOs.md
+@@
++# SLOs
++...
+
+diff --git a/tools/release/validate_post_deploy.php b/tools/release/validate_post_deploy.php
+new file mode 100644
+index 0000000..7777777
+--- /dev/null
++++ b/tools/release/validate_post_deploy.php
+@@
++<?php // ... new file content as in repo ... ?>
+
+diff --git a/admin/dashboard.php b/admin/dashboard.php
+index AAAAAAA..BBBBBBB 100644
+--- a/admin/dashboard.php
++++ b/admin/dashboard.php
+@@
+-  </div>
++    <div class="kpi"><h4>Synthetic P95</h4><div class="kpi-value"><?php echo $p95!==null? ($p95.'ms') : '—'; ?></div><div class="kpi-sub"><?php echo ($lastOk===true?'OK':($lastOk===false?'FAIL':'—')); ?></div></div>
++  </div>

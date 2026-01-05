@@ -1,0 +1,15 @@
+{
+  "categories": [
+    { "name": "مطاعم" },
+    { "name": "مقاهي وكوفي", "parent": "مطاعم" },
+    { "name": "مخابز وحلويات", "parent": "مطاعم" }
+  ],
+  "keywords": [
+    { "category": "مطاعم", "keyword": "مطعم" },
+    { "category": "مقاهي وكوفي", "keyword": "cafe" },
+    { "category": "مخابز وحلويات", "keyword": "bakery" }
+  ],
+  "rules": [
+    { "category": "مطاعم", "target": "types", "match_mode": "regex", "pattern": "restaurant", "weight": 2.5 }
+  ]
+}

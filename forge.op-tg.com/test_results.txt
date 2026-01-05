@@ -1,0 +1,126 @@
+
+Warning: Module "openssl" is already loaded in Unknown on line 0
+
+Warning: Module "mbstring" is already loaded in Unknown on line 0
+
+Warning: Module "fileinfo" is already loaded in Unknown on line 0
+
+ظـ¤ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـù
+ظـّ     OptForge - Complete Workflow Test Suite          ظـّ
+ظـأظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـإ
+
+≡اôè Test 1: Database Connection
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+ظ£à Database connection successful
+   Database location: storage/app.sqlite
+   Database size: 13,512.00 KB
+
+≡اôï Test 2: Core Tables Check
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+ظ£à users
+ظ£à leads
+ظ£à internal_jobs
+ظ£à categories
+ظ£à settings
+
+Total tables: 42
+
+≡ا¤ Test 3: Apply Public Platform Migration
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+Reading migration file...
+
+ظ£à Migration applied
+   Executed: 20 statements
+
+≡ا¤ Test 4: Public Platform Tables
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+ظ£à public_users (5 records)
+ظ£à public_sessions (14 records)
+ظ£à subscription_plans (4 records)
+ظ£à user_subscriptions (0 records)
+ظ£à payment_history (0 records)
+ظ£à usage_tracking (3 records)
+ظ£à saved_searches (0 records)
+ظ£à saved_lists (0 records)
+ظ£à saved_list_items (0 records)
+ظ£à revealed_contacts (0 records)
+ظ£à export_history (0 records)
+
+Public tables created: 11/11
+
+≡اْ Test 5: Subscription Plans
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+ظ£à [1] ┘à╪ش╪د┘┘è (free)
+   Monthly: 0 SAR | Yearly: 0 SAR
+   Credits: Phone=Unlimited, Email=Unlimited
+ظ£à [2] ╪ث╪│╪د╪│┘è (basic)
+   Monthly: 199 SAR | Yearly: 1990 SAR
+   Credits: Phone=100, Email=Unlimited
+ظ£à [3] ╪د╪ص╪ز╪▒╪د┘┘è (professional)
+   Monthly: 399 SAR | Yearly: 3990 SAR
+   Credits: Phone=Unlimited, Email=100
+ظ£à [4] ┘à╪ج╪│╪│╪د╪ز (enterprise)
+   Monthly: 799 SAR | Yearly: 7990 SAR
+   Credits: Phone=Unlimited, Email=Unlimited
+
+ظ£à Total plans: 4
+
+≡اّح Test 6: Existing Leads Data
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+Total leads: 2,997
+  - With phone: 2,997
+  - With email: 0
+  - Categorized: 2,780
+ظ£à Leads table accessible
+
+≡اô Test 7: Categories System
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+Total categories: 6330
+  ظ£ô [1] ╪║┘è╪▒ ┘à╪╡┘┘ّ┘ (Legacy) (uncategorized)
+  ظ£ô [2] ╪╖╪ذ┘è (medical)
+  ظ£ô [5] ╪ش╪░╪▒ (root)
+  ظ£ô [6229] ┘à╪╖╪د╪╣┘à ()
+  ظ£ô [6239] ╪ص┘┘ê┘è╪د╪ز ┘ê┘à╪«╪د╪ذ╪▓ ()
+ظ£à Categories system ready
+
+≡اّج Test 8: Admin Users
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+Admin users: 2
+  ظ£ô Operations Admin (590000000) - admin
+  ظ£ô Acceptance Admin (500000001) - admin
+ظ£à User authentication system ready
+
+ظأآي╕  Test 9: System Settings
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+Configuration settings: 100
+  - brand_name: Forge SotwSora
+  - worker_base_url: https://forge.op-tg.com
+  - internal_server_enabled: 1
+  - classify_enabled: 1
+ظ£à Settings configured
+
+≡اûحي╕  Test 10: Running Services
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+ظ£à PHP Backend Server: Running on localhost:8080
+ظ£à Frontend Dev Server: Running on localhost:3000
+
+ظـ¤ظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـù
+ظـّ                  TEST SUMMARY                         ظـّ
+ظـأظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـظـإ
+
+ظ£à Database: Connected and operational
+ظ£à Public Platform Schema: Applied successfully
+ظ£à Subscription Plans: 4 plans configured
+ظ£à Core Data: 2,997 leads
+ظ£à Backend API: Running
+
+≡اôإ Next Steps:
+ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤ظ¤
+1. Access admin panel: http://localhost:8080/admin/
+2. Access frontend: http://localhost:3000 or http://localhost:5173
+3. Test public registration: Create a test account
+4. Test subscription flow: Subscribe to a plan
+5. Test lead search: Search and reveal contacts
+
+ظ£ذ OptForge platform is ready for testing!
+

@@ -1,0 +1,632 @@
+openapi: 3.1.0
+info:
+  title: Nexus Worker and Admin APIs
+  version: 1.0.0
+  description: |
+    Canonical API specification for internal worker APIs, admin/operator endpoints, and public utility endpoints.
+    Security models include Worker HMAC + replay guard, legacy Internal Secret, and Session+CSRF for admin.
+    
+    Security Appendix (Worker HMAC):
+    - message format: `${METHOD}\n${PATH}\n${body_sha256}\n${ts}` where `body_sha256=hex(sha256(body))`, `ts=unix seconds`
+    - headers: `X-Auth-TS`, `X-Auth-Sign`, optional `X-Worker-Id`
+    - allowed clock skew: ±300 seconds (5 minutes)
+    - replay protection: duplicate (worker_id,ts,body_sha256,method,path) → HTTP 409 replay_detected
+
+servers:
+  - url: https://{host}
+    variables:
+      host:
+        default: example.com
+  - url: http://127.0.0.1:8080
+
+components:
+  securitySchemes:
+    WorkerHMAC:
+      type: apiKey
+      in: header
+      name: X-Auth-Sign
+      description: |
+        HMAC-SHA256 over `${ts}\n${method}\n${path}\n${bodySha256}` with key=internal_secret.
+        Required headers: X-Auth-TS (unix seconds), X-Auth-Sign, X-Worker-Id.
+    InternalSecret:
+      type: apiKey
+      in: header
+      name: X-Internal-Secret
+      description: Legacy header; allowed when per_worker_secret_required=0.
+    Session:
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+      description: PHP session cookie; include CSRF token in JSON body or form fields when required.
+
+  parameters:
+    WorkerIdHeader:
+      name: X-Worker-Id
+      in: header
+      required: false
+      schema: { type: string }
+    TsHeader:
+      name: X-Auth-TS
+      in: header
+      required: false
+      schema: { type: integer, format: int64 }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+    HeartbeatResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        time: { type: string, format: date-time }
+        stopped: { type: boolean }
+        pause:
+          type: object
+          properties:
+            enabled: { type: boolean }
+            start: { type: string }
+            end: { type: string }
+    PullJobResponse:
+      type: object
+      properties:
+        job:
+          anyOf:
+            - type: 'null'
+            - type: object
+              properties:
+                id: { type: integer }
+                query: { type: string }
+                ll: { type: string }
+                role: { type: string, nullable: true }
+                agent_id: { type: integer, nullable: true }
+                last_cursor: { type: integer }
+                radius_km: { type: integer }
+                lang: { type: string }
+                region: { type: string }
+                target_count: { type: integer, nullable: true }
+                progress_count: { type: integer }
+                result_count: { type: integer }
+                attempt_id: { type: string }
+        lease_expires_at: { type: string }
+        lease_sec: { type: integer }
+    ReportResultsRequest:
+      type: object
+      properties:
+        job_id: { type: integer }
+        attempt_id: { type: string }
+        cursor: { type: integer }
+        done: { type: boolean }
+        idempotency_key: { type: string }
+        extend_lease_sec: { type: integer }
+        error: { type: string }
+        log: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              phone: { type: string }
+              city: { type: string }
+              country: { type: string }
+              rating: { type: number }
+              website: { type: string }
+              email: { type: string }
+              types: { type: array, items: { type: string } }
+              gmap_types: { type: string }
+              source_url: { type: string }
+              social: { type: object, additionalProperties: true }
+              lat: { type: number }
+              lng: { type: number }
+              provider: { type: string }
+      required: [job_id]
+    ReportResultsResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        added: { type: integer }
+        duplicates: { type: integer }
+        lease_expires_at: { type: string }
+        done: { type: boolean }
+        idempotent: { type: boolean }
+    ClassificationExplainResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        score: { type: number }
+        category_id: { type: integer, nullable: true }
+        category_name: { type: string, nullable: true }
+        threshold: { type: number }
+        matched: { type: array, items: { type: object } }
+    ReclassifyResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        processed: { type: integer }
+        updated: { type: integer }
+        skipped: { type: integer }
+        remaining: { type: integer, nullable: true }
+    GeoPointCityResponse:
+      type: object
+      properties:
+        ok: { type: boolean }
+        city: { type: string }
+        region: { type: string, nullable: true }
+        source: { type: string }
+
+paths:
+  /api/heartbeat.php:
+    post:
+      summary: Worker heartbeat and presence update
+      security:
+        - WorkerHMAC: []
+      parameters:
+        - $ref: '#/components/parameters/WorkerIdHeader'
+        - $ref: '#/components/parameters/TsHeader'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/HeartbeatResponse' } } } }
+        '401': { description: Unauthorized, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '403': { description: Internal disabled }
+        '409': { description: Replay detected }
+
+  /api/pull_job.php:
+    get:
+      summary: Claim next job for processing
+      security:
+        - WorkerHMAC: []
+      parameters:
+        - name: lease_sec
+          in: query
+          required: false
+          schema: { type: integer }
+        - $ref: '#/components/parameters/WorkerIdHeader'
+        - $ref: '#/components/parameters/TsHeader'
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PullJobResponse' } } } }
+        '401': { description: Unauthorized }
+        '403': { description: Internal disabled }
+        '409': { description: Replay detected }
+
+  /api/report_results.php:
+    post:
+      summary: Report scraping results/progress or completion
+      security:
+        - WorkerHMAC: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportResultsRequest' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ReportResultsResponse' } } } }
+        '400': { description: Missing job id }
+        '401': { description: Unauthorized }
+        '403': { description: Internal disabled }
+        '404': { description: Job not found }
+        '409': { description: Replay detected }
+
+  /api/latest.php:
+    get:
+      summary: Get normalized latest.json
+      parameters:
+        - name: channel
+          in: query
+          schema: { type: string, enum: [stable, canary, beta, dev] }
+      responses:
+        '200': { description: OK }
+        '304': { description: Not Modified }
+        '404': { description: Not found }
+
+  /api/download_worker.php:
+    get:
+      summary: Download worker installer
+      parameters:
+        - name: kind
+          in: query
+          schema: { type: string, enum: [exe, zip] }
+      responses:
+        '200': { description: File stream }
+        '206': { description: Partial content }
+        '304': { description: Not Modified }
+        '404': { description: Not found }
+        '412': { description: Integrity check failed }
+
+  /api/worker_config.php:
+    get:
+      summary: Fetch worker runtime configuration
+      parameters:
+        - name: code
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/WorkerIdHeader'
+      responses:
+        '200': { description: OK }
+        '304': { description: Not Modified }
+        '403': { description: Forbidden }
+
+  /api/health.php:
+    get:
+      summary: Liveness/DB check
+      responses:
+        '200': { description: OK }
+
+  /api/worker_metrics.php:
+    post:
+      summary: Upsert worker metrics and renew lease
+      security:
+        - WorkerHMAC: []
+      responses:
+        '200': { description: OK }
+        '401': { description: Unauthorized }
+        '403': { description: Internal disabled }
+
+  /api/worker_status.php:
+    get:
+      summary: Fetch worker status + log tail (admin)
+      security:
+        - Session: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+        '403': { description: Forbidden }
+
+  /api/worker_stream.php:
+    get:
+      summary: Server-sent events worker live status (admin)
+      security:
+        - Session: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Event stream }
+        '403': { description: Forbidden }
+
+  /api/classify_explain.php:
+    post:
+      summary: Explain classification for an existing lead
+      security:
+        - Session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id: { type: integer }
+                csrf: { type: string }
+              required: [id, csrf]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ClassificationExplainResponse' } } } }
+        '400': { description: CSRF or bad input }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+
+  /api/classify_preview.php:
+    post:
+      summary: Preview classification for provided fields
+      security:
+        - Session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                types: { type: string }
+                website: { type: string }
+                email: { type: string }
+                source_url: { type: string }
+                city: { type: string }
+                country: { type: string }
+                phone: { type: string }
+                csrf: { type: string }
+              required: [csrf]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ClassificationExplainResponse' } } } }
+        '400': { description: CSRF or bad input }
+        '403': { description: Forbidden }
+
+  /api/reclassify.php:
+    post:
+      summary: Reclassify a recent batch of leads (admin)
+      security:
+        - Session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit: { type: integer, default: 200 }
+                only_empty: { type: boolean, default: true }
+                override: { type: boolean, default: false }
+                csrf: { type: string }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ReclassifyResponse' } } } }
+        '400': { description: CSRF or bad input }
+        '403': { description: Forbidden }
+
+  /api/cron_reclassify.php:
+    get:
+      summary: Headless reclassify via maintenance secret (cron)
+      parameters:
+        - name: secret
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer }
+        - name: only_empty
+          in: query
+          schema: { type: string, enum: ['0','1'] }
+        - name: override
+          in: query
+          schema: { type: string, enum: ['0','1'] }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/ReclassifyResponse' } } } }
+        '403': { description: Forbidden }
+        '429': { description: Busy }
+
+  /api/export_classification.php:
+    get:
+      summary: Export categories/keywords/rules JSON
+      security:
+        - Session: []
+      parameters:
+        - name: csrf
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: JSON export }
+        '400': { description: CSRF }
+        '403': { description: Forbidden }
+
+  /api/export_leads.php:
+    get:
+      summary: Export leads CSV
+      security:
+        - Session: []
+      parameters:
+        - name: csrf
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: CSV stream }
+        '400': { description: CSRF }
+        '403': { description: Forbidden }
+
+  /api/export_leads_excel.php:
+    get:
+      summary: Export leads as legacy Excel XML
+      security:
+        - Session: []
+      parameters:
+        - name: csrf
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Excel XML stream }
+        '400': { description: CSRF }
+        '403': { description: Forbidden }
+
+  /api/export_leads_xlsx.php:
+    get:
+      summary: Export leads as XLSX
+      security:
+        - Session: []
+      parameters:
+        - name: csrf
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: XLSX stream }
+        '400': { description: CSRF }
+        '403': { description: Forbidden }
+
+  /api/geo_admin.php:
+    post:
+      summary: Manage geo datasets (admin)
+      security:
+        - Session: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                action: { type: string, enum: [init, fetch_cities, fetch_districts] }
+                csrf: { type: string }
+      responses:
+        '303': { description: Redirect to admin/geo.php with message }
+        '400': { description: Bad request/CSRF }
+        '403': { description: Forbidden }
+
+  /api/geo_point_city.php:
+    post:
+      summary: Resolve coordinates or city text to a city within SA (prefers internal DB)
+      security:
+        - Session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lat: { type: number }
+                lng: { type: number }
+                city_name: { type: string }
+                suggest: { type: boolean }
+                q: { type: string }
+                strict_city: { type: boolean }
+                csrf: { type: string }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/GeoPointCityResponse' } } } }
+        '400': { description: CSRF or bad input }
+        '403': { description: Forbidden }
+
+  /api/monitor_events.php:
+    get:
+      summary: Live monitoring (SSE) — admin only
+      security:
+        - Session: []
+      responses:
+        '200': { description: text/event-stream }
+        '403': { description: Forbidden }
+
+  /api/monitor_stats.php:
+    get:
+      summary: Monitoring snapshot JSON — admin only
+      security:
+        - Session: []
+      responses:
+        '200': { description: OK }
+        '403': { description: Forbidden }
+
+  /api/opcache_reset.php:
+    post:
+      summary: Reset PHP opcache during maintenance
+      parameters:
+        - name: X-Internal-Secret
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: OK }
+        '403': { description: Forbidden }
+
+  /api/self_update.php:
+    post:
+      summary: Apply site update from latest site-*.zip (admin, gated by enable_self_update)
+      security:
+        - Session: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                csrf: { type: string }
+      responses:
+        '200': { description: OK }
+        '400': { description: CSRF }
+        '403': { description: Disabled or local env }
+        '405': { description: Method not allowed }
+
+  /api/job_action.php:
+    post:
+      summary: Admin job control (force_requeue, cancel)
+      security:
+        - Session: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_id: { type: integer }
+                action: { type: string, enum: [force_requeue, cancel] }
+                csrf: { type: string }
+              required: [job_id, action, csrf]
+      responses:
+        '200': { description: OK }
+        '400': { description: Bad input/CSRF }
+        '403': { description: Forbidden }
+        '404': { description: Not found }
+
+  /api/import_classification.php:
+    post:
+      summary: Import classification JSON (admin)
+      security:
+        - Session: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                json: { type: string }
+                replace: { type: string }
+                csrf: { type: string }
+              required: [json, csrf]
+      responses:
+        '200': { description: OK }
+        '400': { description: CSRF or bad input }
+        '403': { description: Forbidden }
+
+  /api/import_classification_full.php:
+    post:
+      summary: Import built-in full classification (admin)
+      security:
+        - Session: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                replace: { type: string }
+                csrf: { type: string }
+      responses:
+        '200': { description: OK }
+        '400': { description: CSRF }
+        '403': { description: Forbidden }
+
+  /api/worker_env.php:
+    get:
+      summary: Download a worker .env template (admin)
+      security:
+        - Session: []
+      parameters:
+        - name: worker_id
+          in: query
+          schema: { type: string }
+      responses:
+        '200': { description: text/plain download }
+        '403': { description: Forbidden }
+
+  /api/dev_add_job.php:
+    get:
+      summary: Dev-only helper to add a job (local only)
+      description: Dev-only endpoint — restricted to 127.0.0.1 by source code guard
+      responses:
+        '200': { description: OK }
+        '403': { description: Local only }
+
+  /api/dev_add_job_noauth.php:
+    get:
+      summary: Dev-only helper to add a job without auth (local only)
+      description: Dev-only endpoint — restricted to 127.0.0.1 by source code guard
+      responses:
+        '200': { description: OK }
+        '403': { description: Local only }
+
+  /api/dev_enable_internal.php:
+    get:
+      summary: Dev-only helper to enable internal server
+      description: Dev-only endpoint — restricted to local addresses; sets internal_server_enabled=1 and generates secret if missing
+      parameters:
+        - name: confirm
+          in: query
+          schema: { type: string, enum: ['1'] }
+      responses:
+        '200': { description: OK }
+        '400': { description: Missing confirm }
+        '403': { description: Local only }

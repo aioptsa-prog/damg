@@ -1,0 +1,44 @@
+diff --git a/api/worker_config.php b/api/worker_config.php
+index abcdef0..bcdef01 100644
+--- a/api/worker_config.php
++++ b/api/worker_config.php
+@@
+-  if($wid !== ''){
+-    $raw = get_setting('worker_channel_overrides_json','{}');
+-    $map = json_decode($raw, true);
+-    if(is_array($map) && isset($map[$wid])){
+-      $ch = (string)$map[$wid];
+-      if($ch==='stable'||$ch==='canary'||$ch==='beta'){ $cfg['update_channel'] = $ch; }
+-    }
+-  }
++  if($wid !== ''){
++    $roll = (int)max(0, min(100, (int)get_setting('rollout_canary_percent','0')));
++    if($roll > 0){
++      $bucket = (int)(hexdec(substr(sha1($wid), 0, 8)) % 100);
++      if($bucket < $roll){ $cfg['update_channel'] = 'canary'; }
++    }
++    $raw = get_setting('worker_channel_overrides_json','{}');
++    $map = json_decode($raw, true);
++    if(is_array($map) && isset($map[$wid])){
++      $ch = (string)$map[$wid];
++      if($ch==='stable'||$ch==='canary'||$ch==='beta'){ $cfg['update_channel'] = $ch; }
++    }
++  }
+@@
+ echo json_encode($cfg, JSON_UNESCAPED_UNICODE);
+
+diff --git a/admin/update_channel.php b/admin/update_channel.php
+new file mode 100644
+index 0000000..3333333
+--- /dev/null
++++ b/admin/update_channel.php
+@@
++<?php // ... new file content as in repo ... ?>
+
+diff --git a/admin/rollback.php b/admin/rollback.php
+new file mode 100644
+index 0000000..4444444
+--- /dev/null
++++ b/admin/rollback.php
+@@
++<?php // ... new file content as in repo ... ?>

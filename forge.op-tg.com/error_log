@@ -1,0 +1,8 @@
+[26-Nov-2025 20:50:01 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000]: General error: 5 database is locked in /home2/optg/forge.op-tg.com/config/db.php:386
+Stack trace:
+#0 /home2/optg/forge.op-tg.com/config/db.php(386): PDOStatement->execute(Array)
+#1 /home2/optg/forge.op-tg.com/config/db.php(447): migrate()
+#2 /home2/optg/forge.op-tg.com/bootstrap.php(4): require_once('/home2/optg/for...')
+#3 /home2/optg/forge.op-tg.com/index.php(1): require_once('/home2/optg/for...')
+#4 {main}
+  thrown in /home2/optg/forge.op-tg.com/config/db.php on line 386

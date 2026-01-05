@@ -1,0 +1,29 @@
+{
+  "name": "leads-internal-worker",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2",
+    "playwright": "^1.47.0"
+  },
+  "bin": "launcher.js",
+  "scripts": {
+    "start": "node launcher.js",
+    "health": "powershell -NoProfile -ExecutionPolicy Bypass -File ./health_check.ps1",
+    "postinstall": "npx playwright install chromium || exit 0",
+    "build:exe": "npx pkg -t node18-win-x64 launcher.js -o worker.exe",
+    "build:deps": "npm i && npx playwright install chromium"
+  },
+  "pkg": {
+    "scripts": ["launcher.js","index.js"],
+    "assets": [
+      "ms-playwright/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "index.js"
+    ],
+    "targets": ["node18-win-x64"]
+  }
+}
