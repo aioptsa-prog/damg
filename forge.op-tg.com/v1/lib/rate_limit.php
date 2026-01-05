@@ -1,14 +1,79 @@
 <?php
 /**
- * Server-side Rate Limiting (Critical Security Fix)
+ * Server-side Rate Limiting
+ * Sprint 1.3: Rate Limit تعميم + Cleanup
+ * 
  * Uses SQLite for persistence across requests/restarts
+ * Includes automatic cleanup to prevent table bloat
+ * 
+ * @since Sprint 0 (Critical Security Fix)
+ * @updated Sprint 1 (Generalization + Cleanup)
  */
+
+// Cleanup probability (1 in N requests triggers cleanup)
+define('RATE_LIMIT_CLEANUP_PROBABILITY', 100);
+
+// Maximum age for rate limit entries (in seconds)
+define('RATE_LIMIT_MAX_AGE', 3600); // 1 hour
+
+/**
+ * Ensure rate_limits table exists
+ * 
+ * @param PDO $pdo
+ */
+function ensure_rate_limit_table(PDO $pdo): void {
+    static $created = false;
+    if ($created) return;
+    
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS rate_limits (
+            k TEXT NOT NULL,
+            window_start INTEGER NOT NULL,
+            count INTEGER NOT NULL,
+            created_at INTEGER DEFAULT (strftime('%s', 'now')),
+            PRIMARY KEY (k, window_start)
+        )
+    ");
+    
+    // Create index for cleanup queries
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_rate_limits_window ON rate_limits(window_start)");
+    
+    $created = true;
+}
+
+/**
+ * Cleanup old rate limit entries
+ * Called probabilistically to avoid overhead on every request
+ * 
+ * @param PDO $pdo
+ * @param bool $force Force cleanup regardless of probability
+ */
+function rate_limit_cleanup(PDO $pdo, bool $force = false): void {
+    // Probabilistic cleanup (1 in N requests)
+    if (!$force && rand(1, RATE_LIMIT_CLEANUP_PROBABILITY) !== 1) {
+        return;
+    }
+    
+    try {
+        $cutoff = time() - RATE_LIMIT_MAX_AGE;
+        $stmt = $pdo->prepare("DELETE FROM rate_limits WHERE window_start < ?");
+        $stmt->execute([$cutoff]);
+        
+        $deleted = $stmt->rowCount();
+        if ($deleted > 0) {
+            error_log("[RateLimit] Cleaned up $deleted old entries");
+        }
+    } catch (Exception $e) {
+        // Ignore cleanup errors - non-critical
+        error_log("[RateLimit] Cleanup error: " . $e->getMessage());
+    }
+}
 
 /**
  * Check rate limit and return 429 if exceeded
  * 
  * @param PDO $pdo Database connection
- * @param string $key Unique identifier (e.g., "send:IP:API_KEY_HASH")
+ * @param string $key Unique identifier (e.g., "send:IP:USER_ID")
  * @param int $limit Max requests allowed in window
  * @param int $windowSeconds Time window in seconds
  * @return void Exits with 429 if limit exceeded
@@ -17,23 +82,10 @@ function rate_limit_or_429(PDO $pdo, string $key, int $limit, int $windowSeconds
     $now = time();
     $windowStart = $now - ($now % $windowSeconds);
 
-    // Ensure table exists (idempotent)
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS rate_limits (
-            k TEXT NOT NULL,
-            window_start INTEGER NOT NULL,
-            count INTEGER NOT NULL,
-            PRIMARY KEY (k, window_start)
-        )
-    ");
-
-    // Clean old entries (best-effort, non-blocking)
-    try {
-        $cutoff = $now - ($windowSeconds * 2);
-        $pdo->prepare("DELETE FROM rate_limits WHERE window_start < ?")->execute([$cutoff]);
-    } catch (Exception $e) {
-        // Ignore cleanup errors
-    }
+    ensure_rate_limit_table($pdo);
+    
+    // Probabilistic cleanup
+    rate_limit_cleanup($pdo);
 
     $pdo->beginTransaction();
 
@@ -99,4 +151,55 @@ function rate_limit_status(PDO $pdo, string $key, int $limit, int $windowSeconds
     } catch (Exception $e) {
         return ['remaining' => $limit, 'reset_at' => $now + $windowSeconds];
     }
+}
+
+// ============================================
+// Pre-configured Rate Limiters
+// ============================================
+
+/**
+ * Rate limit for WhatsApp send operations
+ * 30 requests per minute per user
+ */
+function rate_limit_whatsapp(PDO $pdo, $userId): void {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $key = 'whatsapp:' . $userId . ':' . substr(md5($ip), 0, 8);
+    rate_limit_or_429($pdo, $key, 30, 60);
+}
+
+/**
+ * Rate limit for job creation
+ * 10 jobs per minute per user
+ */
+function rate_limit_jobs(PDO $pdo, $userId): void {
+    $key = 'jobs:' . $userId;
+    rate_limit_or_429($pdo, $key, 10, 60);
+}
+
+/**
+ * Rate limit for login attempts
+ * 5 attempts per 15 minutes per IP
+ */
+function rate_limit_login(PDO $pdo): void {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $key = 'login:' . $ip;
+    rate_limit_or_429($pdo, $key, 5, 900); // 15 minutes
+}
+
+/**
+ * Rate limit for API calls (general)
+ * 100 requests per minute per user
+ */
+function rate_limit_api(PDO $pdo, $userId): void {
+    $key = 'api:' . $userId;
+    rate_limit_or_429($pdo, $key, 100, 60);
+}
+
+/**
+ * Rate limit for search operations
+ * 20 searches per minute per user
+ */
+function rate_limit_search(PDO $pdo, $userId): void {
+    $key = 'search:' . $userId;
+    rate_limit_or_429($pdo, $key, 20, 60);
 }

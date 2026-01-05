@@ -2,20 +2,25 @@
 /**
  * Campaigns API - Create Campaign
  * POST /v1/api/campaigns/create.php
+ * 
+ * Sprint 1 Security:
+ * - CORS Allowlist
+ * - Unified Auth (RBAC)
+ * - Input Validation
+ * - Rate Limiting
+ * - Security Headers
  */
 
+// Security: CORS + Headers
+require_once __DIR__ . '/../../../lib/cors.php';
+require_once __DIR__ . '/../../../lib/security_headers.php';
+handle_cors(['POST', 'OPTIONS']);
+apply_api_security_headers();
+
+// Core dependencies
 require_once __DIR__ . '/../bootstrap_api.php';
-require_once __DIR__ . '/../../../lib/auth.php';
-
-header('Content-Type: application/json');
-
-// Require authentication (admin/agent auth)
-$user = current_user();
-if (!$user) {
-    http_response_code(401);
-    echo json_encode(['ok' => false, 'error' => 'UNAUTHORIZED']);
-    exit;
-}
+require_once __DIR__ . '/../../../lib/validation.php';
+require_once __DIR__ . '/../../lib/rate_limit.php';
 
 // Only accept POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -24,22 +29,32 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Parse JSON input
-$input = json_decode(file_get_contents('php://input'), true);
+// Auth: Require authenticated user (any role can create campaigns)
+$user = require_api_user();
+$pdo = db();
 
-// Validate required fields
-$name = $input['name'] ?? '';
-$city = $input['city'] ?? '';
-$query = $input['query'] ?? $input['category'] ?? '';
-$target = (int) ($input['target'] ?? 100);
-$description = $input['description'] ?? '';
-$category_id = $input['category_id'] ?? null;
+// Rate Limit: 10 jobs per minute
+rate_limit_jobs($pdo, $user['id']);
 
-if (empty($name) || empty($city)) {
-    http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'MISSING_FIELDS', 'message' => 'اسم الحملة والمدينة مطلوبان']);
-    exit;
-}
+// Input Validation: Parse and validate JSON
+$input = parse_json_input();
+
+$validated = validate_schema($input, [
+    'name' => ['type' => 'string', 'required' => true, 'min' => 2, 'max' => 100],
+    'city' => ['type' => 'string', 'required' => true, 'min' => 2, 'max' => 50],
+    'query' => ['type' => 'string', 'required' => false, 'max' => 200],
+    'category' => ['type' => 'string', 'required' => false, 'max' => 200],
+    'target' => ['type' => 'int', 'required' => false, 'min' => 1, 'max' => 1000, 'default' => 100],
+    'description' => ['type' => 'string', 'required' => false, 'max' => 500],
+    'category_id' => ['type' => 'int', 'required' => false],
+]);
+
+$name = $validated['name'];
+$city = $validated['city'];
+$query = $validated['query'] ?? $validated['category'] ?? '';
+$target = $validated['target'] ?? 100;
+$description = $validated['description'] ?? '';
+$category_id = $validated['category_id'] ?? null;
 
 // Get city coordinates (all Saudi cities)
 $cityCoords = [

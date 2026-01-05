@@ -40,6 +40,9 @@ ob_start();
 // Load existing bootstrap
 require_once __DIR__ . '/../../bootstrap.php';
 
+// Load unified API auth
+require_once __DIR__ . '/../../lib/api_auth.php';
+
 // Clear any output that might have been generated
 ob_end_clean();
 
@@ -47,11 +50,7 @@ ob_end_clean();
 // Ensure JSON content type
 header('Content-Type: application/json; charset=utf-8');
 
-// CORS headers (already in .htaccess but adding here for consistency)
-if (isset($_SERVER['HTTP_ORIGIN'])) {
-    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-    header('Access-Control-Allow-Credentials: true');
-}
+// Note: CORS is now handled by lib/cors.php - call handle_cors() at start of each endpoint
 
 // ==================== Helper Functions ====================
 
@@ -131,24 +130,18 @@ function get_json_input()
 
 /**
  * Require authentication for API endpoint
+ * @deprecated Use require_api_user() from lib/api_auth.php
  */
 function require_api_auth()
 {
-    $user = current_user();
-    if (!$user) {
-        send_error('Authentication required', 'UNAUTHORIZED', 401);
-    }
-    return $user;
+    return require_api_user();
 }
 
 /**
  * Require specific role for API endpoint
+ * @deprecated Use require_role() from lib/api_auth.php
  */
 function require_api_role($role)
 {
-    $user = require_api_auth();
-    if ($user['role'] !== $role && $user['role'] !== 'admin') {
-        send_error('Insufficient permissions', 'FORBIDDEN', 403);
-    }
-    return $user;
+    return require_role($role);
 }
