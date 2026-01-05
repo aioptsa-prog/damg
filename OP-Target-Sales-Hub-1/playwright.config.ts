@@ -22,9 +22,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npx vercel dev --listen 3000',
+    command: 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120000,
   },
 });
