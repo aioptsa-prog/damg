@@ -1,0 +1,250 @@
+{
+  "info": {
+    "name": "Forge + OP-Target API Collection",
+    "description": "Sprint 4C: API collection for testing all endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "forge_base", "value": "http://localhost:8081" },
+    { "key": "op_target_base", "value": "http://localhost:3000" },
+    { "key": "internal_secret", "value": "your-internal-secret" },
+    { "key": "auth_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "Forge Health",
+          "request": {
+            "method": "GET",
+            "url": "{{forge_base}}/v1/api/health.php"
+          }
+        },
+        {
+          "name": "OP-Target Health",
+          "request": {
+            "method": "GET",
+            "url": "{{op_target_base}}/api/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login (OP-Target)",
+          "request": {
+            "method": "POST",
+            "url": "{{op_target_base}}/api/auth",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@optarget.com\",\n  \"password\": \"Admin@123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{op_target_base}}/api/auth",
+            "header": [
+              { "key": "Cookie", "value": "auth_token={{auth_token}}" }
+            ]
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "DELETE",
+            "url": "{{op_target_base}}/api/auth",
+            "header": [
+              { "key": "Cookie", "value": "auth_token={{auth_token}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worker APIs",
+      "item": [
+        {
+          "name": "Heartbeat",
+          "request": {
+            "method": "POST",
+            "url": "{{forge_base}}/api/heartbeat.php",
+            "header": [
+              { "key": "X-Internal-Secret", "value": "{{internal_secret}}" },
+              { "key": "X-Worker-Id", "value": "test-worker-1" }
+            ]
+          }
+        },
+        {
+          "name": "Pull Job",
+          "request": {
+            "method": "GET",
+            "url": "{{forge_base}}/api/pull_job.php",
+            "header": [
+              { "key": "X-Internal-Secret", "value": "{{internal_secret}}" },
+              { "key": "X-Worker-Id", "value": "test-worker-1" }
+            ]
+          }
+        },
+        {
+          "name": "Report Results",
+          "request": {
+            "method": "POST",
+            "url": "{{forge_base}}/api/report_results.php",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Internal-Secret", "value": "{{internal_secret}}" },
+              { "key": "X-Worker-Id", "value": "test-worker-1" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_id\": 1,\n  \"cursor\": 0,\n  \"done\": false,\n  \"items\": []\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campaigns (v1)",
+      "item": [
+        {
+          "name": "Create Campaign",
+          "request": {
+            "method": "POST",
+            "url": "{{forge_base}}/v1/api/campaigns/create.php",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"مطاعم الرياض\",\n  \"city\": \"الرياض\",\n  \"target_count\": 10\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "WhatsApp (v1)",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "url": "{{forge_base}}/v1/api/whatsapp/send.php",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Origin", "value": "http://localhost:3000" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"966500000000\",\n  \"message\": \"Test message\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "url": "{{forge_base}}/v1/api/whatsapp/settings.php",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Origin", "value": "http://localhost:3000" }
+            ]
+          }
+        },
+        {
+          "name": "Get Templates",
+          "request": {
+            "method": "GET",
+            "url": "{{forge_base}}/v1/api/whatsapp/templates.php",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Origin", "value": "http://localhost:3000" }
+            ]
+          }
+        },
+        {
+          "name": "Get Logs",
+          "request": {
+            "method": "GET",
+            "url": "{{forge_base}}/v1/api/whatsapp/logs.php",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Origin", "value": "http://localhost:3000" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Integration (v1)",
+      "item": [
+        {
+          "name": "Google Web Cache",
+          "request": {
+            "method": "GET",
+            "url": "{{forge_base}}/v1/api/integration/google_web/cache.php",
+            "header": [
+              { "key": "X-Internal-Secret", "value": "{{internal_secret}}" }
+            ]
+          }
+        },
+        {
+          "name": "Google Web Usage",
+          "request": {
+            "method": "GET",
+            "url": "{{forge_base}}/v1/api/integration/google_web/usage.php",
+            "header": [
+              { "key": "X-Internal-Secret", "value": "{{internal_secret}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports (OP-Target)",
+      "item": [
+        {
+          "name": "Generate Report",
+          "request": {
+            "method": "POST",
+            "url": "{{op_target_base}}/api/reports?generate=true",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "auth_token={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leadId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Enrich Evidence",
+          "request": {
+            "method": "POST",
+            "url": "{{op_target_base}}/api/reports?enrich=true",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Cookie", "value": "auth_token={{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leadId\": 1\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
