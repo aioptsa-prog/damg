@@ -156,31 +156,70 @@ export default async function handler(req: any, res: any) {
         const password = userData.password;
         delete userData.password;
 
+        // Check if user exists
+        const existingUser = await query('SELECT id FROM users WHERE id = $1', [userData.id]);
+        const isNewUser = existingUser.rows.length === 0;
+
+        // Update password if provided (for both new and existing users)
+        let passwordHash = null;
+        if (password && password.length >= 6) {
+          passwordHash = await bcrypt.hash(password, 10);
+        } else if (isNewUser) {
+          // New user must have password
+          return res.status(400).json({ error: 'Bad Request', message: 'كلمة المرور مطلوبة للمستخدم الجديد' });
+        }
+
         const snakeUser = toSnake(userData);
 
         // Never allow setting password_hash directly via this endpoint
         delete snakeUser.password_hash;
 
-        const cols = Object.keys(snakeUser).join(', ');
-        const vals = Object.values(snakeUser);
-        const placeholders = vals.map((_, i) => `$${i + 1}`).join(', ');
+        if (isNewUser) {
+          // INSERT new user with password
+          const cols = [...Object.keys(snakeUser), 'password_hash'].join(', ');
+          const vals = [...Object.values(snakeUser), passwordHash];
+          const placeholders = vals.map((_, i) => `$${i + 1}`).join(', ');
+          
+          const q = `INSERT INTO users (${cols}) VALUES (${placeholders}) RETURNING id, name, email, role, team_id, avatar, is_active`;
+          const resUser = await query(q, vals);
+          
+          // Audit log
+          await query(
+            'INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, created_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+            [crypto.randomUUID(), admin.id, 'USER_CREATED', 'USER', userData.id]
+          );
+          
+          return res.status(201).json(toCamel(resUser.rows[0]));
+        } else {
+          // UPDATE existing user
+          let updateQuery = 'UPDATE users SET name = $1, role = $2, is_active = $3, team_id = $4, avatar = $5';
+          let updateVals: any[] = [
+            snakeUser.name,
+            snakeUser.role,
+            snakeUser.is_active,
+            snakeUser.team_id || null,
+            snakeUser.avatar
+          ];
+          
+          if (passwordHash) {
+            updateQuery += ', password_hash = $6 WHERE id = $7';
+            updateVals.push(passwordHash, userData.id);
+          } else {
+            updateQuery += ' WHERE id = $6';
+            updateVals.push(userData.id);
+          }
+          
+          updateQuery += ' RETURNING id, name, email, role, team_id, avatar, is_active';
+          const resUser = await query(updateQuery, updateVals);
 
-        const q = `INSERT INTO users (${cols}) VALUES (${placeholders}) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role, is_active=EXCLUDED.is_active, team_id=EXCLUDED.team_id, avatar=EXCLUDED.avatar RETURNING id, name, email, role, team_id, avatar, is_active`;
-        const resUser = await query(q, vals);
+          // Audit log
+          await query(
+            'INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, created_at) VALUES ($1, $2, $3, $4, $5, NOW())',
+            [crypto.randomUUID(), admin.id, 'USER_MODIFIED', 'USER', userData.id]
+          );
 
-        // Update password if provided
-        if (password && password.length >= 6) {
-          const passwordHash = await bcrypt.hash(password, 10);
-          await query('UPDATE users SET password_hash = $1 WHERE id = $2', [passwordHash, userData.id]);
+          return res.status(200).json(toCamel(resUser.rows[0]));
         }
-
-        // Audit log
-        await query(
-          'INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, created_at) VALUES ($1, $2, $3, $4, $5, NOW())',
-          [crypto.randomUUID(), admin.id, 'USER_MODIFIED', 'USER', userData.id]
-        );
-
-        return res.status(200).json(toCamel(resUser.rows[0]));
 
       case 'DELETE':
         // Delete user - SUPER_ADMIN only
