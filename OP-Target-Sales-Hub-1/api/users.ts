@@ -1,6 +1,7 @@
 
 import { query, toCamel, toSnake } from './_db.js';
 import { requireAuth, requireRole, canAccessUser } from './_auth.js';
+import bcrypt from 'bcrypt';
 
 /**
  * Users API with RBAC protection
@@ -169,8 +170,7 @@ export default async function handler(req: any, res: any) {
 
         // Update password if provided
         if (password && password.length >= 6) {
-          const bcrypt = await import('bcrypt');
-          const passwordHash = await bcrypt.default.hash(password, 10);
+          const passwordHash = await bcrypt.hash(password, 10);
           await query('UPDATE users SET password_hash = $1 WHERE id = $2', [passwordHash, userData.id]);
         }
 
