@@ -171,7 +171,8 @@ export default async function handler(req: any, res: any) {
 
         const snakeUser = toSnake(userData);
 
-        // Never allow setting password_hash directly via this endpoint
+        // Never allow setting password or password_hash directly via this endpoint
+        delete snakeUser.password;
         delete snakeUser.password_hash;
 
         if (isNewUser) {
