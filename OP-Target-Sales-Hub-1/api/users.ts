@@ -252,7 +252,11 @@ export default async function handler(req: any, res: any) {
     }
   } catch (error: any) {
     console.error('API Users Error:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error.message || 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }
 
