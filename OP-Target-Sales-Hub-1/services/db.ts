@@ -12,6 +12,7 @@ class DatabaseService {
   private async fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const response = await fetch(`${this.apiBase}${endpoint}`, {
       ...options,
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -20,7 +21,8 @@ class DatabaseService {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Network error' }));
-      throw new Error(error.message || 'حدث خطأ في الاتصال بالسيرفر');
+      console.error('[DB] API Error:', response.status, error);
+      throw new Error(error.message || `خطأ ${response.status}: حدث خطأ في الاتصال بالسيرفر`);
     }
 
     return response.json();
