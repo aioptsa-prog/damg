@@ -151,6 +151,10 @@ export default async function handler(req: any, res: any) {
           return res.status(400).json({ error: 'Bad Request', message: 'User data with ID is required' });
         }
 
+        // Handle password separately
+        const password = userData.password;
+        delete userData.password;
+
         const snakeUser = toSnake(userData);
 
         // Never allow setting password_hash directly via this endpoint
@@ -162,6 +166,13 @@ export default async function handler(req: any, res: any) {
 
         const q = `INSERT INTO users (${cols}) VALUES (${placeholders}) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, role=EXCLUDED.role, is_active=EXCLUDED.is_active, team_id=EXCLUDED.team_id, avatar=EXCLUDED.avatar RETURNING id, name, email, role, team_id, avatar, is_active`;
         const resUser = await query(q, vals);
+
+        // Update password if provided
+        if (password && password.length >= 6) {
+          const bcrypt = await import('bcrypt');
+          const passwordHash = await bcrypt.default.hash(password, 10);
+          await query('UPDATE users SET password_hash = $1 WHERE id = $2', [passwordHash, userData.id]);
+        }
 
         // Audit log
         await query(

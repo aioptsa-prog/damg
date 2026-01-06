@@ -34,13 +34,14 @@ const UserManagement: React.FC = () => {
 
   const currentUser = authService.getCurrentUser();
 
-  const [formData, setFormData] = useState<Partial<User>>({
+  const [formData, setFormData] = useState<Partial<User> & { password?: string }>({
     name: '',
     email: '',
     role: UserRole.SALES_REP,
     teamId: '',
     isActive: true,
-    avatar: 'https://picsum.photos/seed/newuser/100/100'
+    avatar: 'https://picsum.photos/seed/newuser/100/100',
+    password: ''
   });
 
   useEffect(() => {
@@ -64,7 +65,7 @@ const UserManagement: React.FC = () => {
   const handleOpenModal = (user: User | null = null) => {
     if (user) {
       setEditingUser(user);
-      setFormData(user);
+      setFormData({ ...user, password: '' });
     } else {
       setEditingUser(null);
       setFormData({
@@ -74,7 +75,8 @@ const UserManagement: React.FC = () => {
         role: UserRole.SALES_REP,
         teamId: teams[0]?.id || '',
         isActive: true,
-        avatar: `https://picsum.photos/seed/${Math.random()}/100/100`
+        avatar: `https://picsum.photos/seed/${Math.random()}/100/100`,
+        password: ''
       });
     }
     setIsModalOpen(true);
@@ -461,12 +463,21 @@ const UserManagement: React.FC = () => {
                 </button>
               </div>
 
-              <div className="bg-amber-50 p-6 rounded-3xl border border-amber-100 flex flex-row-reverse items-start gap-4">
-                <ShieldCheck className="text-amber-600 shrink-0" size={24} />
-                <div className="text-right">
-                  <h6 className="text-sm font-black text-amber-900">أمان الحسابات</h6>
-                  <p className="text-[10px] text-amber-700 font-bold leading-relaxed">يجب إنشاء كلمة مرور آمنة لكل موظف جديد. تأكد من استخدام كلمات مرور قوية تحتوي على حروف وأرقام ورموز.</p>
-                </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2 flex items-center gap-2">
+                  <Key size={12} /> {editingUser ? 'كلمة المرور الجديدة (اتركها فارغة للإبقاء على القديمة)' : 'كلمة المرور'}
+                </label>
+                <input
+                  type="password"
+                  required={!editingUser}
+                  minLength={6}
+                  placeholder={editingUser ? '••••••••' : 'أدخل كلمة مرور قوية'}
+                  className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold text-left outline-none focus:ring-2 focus:ring-primary/20"
+                  dir="ltr"
+                  value={(formData as any).password || ''}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                />
+                <p className="text-[9px] text-slate-400 font-bold">يجب أن تحتوي على 6 أحرف على الأقل</p>
               </div>
 
               <div className="flex flex-row-reverse gap-4 pt-4">
