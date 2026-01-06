@@ -2,13 +2,25 @@
 /**
  * CLI wrapper for Lead Enricher
  * Usage: node cli.js '{"name": "...", "city": "..."}'
+ * Or:    node cli.js --file /path/to/lead.json
  */
 
 import { LeadEnricher } from './index.js';
 import { Aggregator } from './aggregator.js';
+import { readFileSync } from 'fs';
 
 async function main() {
-  const leadJson = process.argv[2];
+  let leadJson = process.argv[2];
+  
+  // دعم قراءة من ملف
+  if (leadJson === '--file' && process.argv[3]) {
+    try {
+      leadJson = readFileSync(process.argv[3], 'utf-8');
+    } catch (e) {
+      console.error(JSON.stringify({ ok: false, error: 'Cannot read file: ' + e.message }));
+      process.exit(1);
+    }
+  }
   
   if (!leadJson) {
     console.error(JSON.stringify({ ok: false, error: 'No lead data provided' }));

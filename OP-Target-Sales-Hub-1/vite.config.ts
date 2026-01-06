@@ -10,6 +10,16 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: '0.0.0.0',
       proxy: {
+        '/api/research': {
+          target: 'http://localhost:8081',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/api\/research/, '/v1/api/leads/research.php'),
+        },
+        '/api/health': {
+          target: 'http://localhost:8081',
+          changeOrigin: true,
+          rewrite: (path: string) => '/v1/api/health.php',
+        },
         '/api': {
           target: 'https://op-target-sales-hub.vercel.app',
           changeOrigin: true,

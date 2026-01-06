@@ -364,11 +364,11 @@ const ReportView: React.FC<ReportViewProps> = ({ lead, report: initialReport, us
               <h3 className="text-2xl font-black">خطة المتابعة والمهام المجدولة</h3>
            </div>
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {asArray(model.follow_up_plan).map((step) => {
+              {asArray(model.follow_up_plan).map((step, index) => {
                  const task = asArray(leadTasks).find(t => t.dayNumber === step.day);
                  const isDone = task?.status === 'DONE';
                  return (
-                   <div key={step.day} onClick={() => toggleTask(step.day)} className={`p-6 rounded-[2rem] border-2 transition-all cursor-pointer flex flex-col justify-between ${isDone ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-transparent hover:border-primary/20'}`}>
+                   <div key={`step-${step.day}-${index}`} onClick={() => toggleTask(step.day)} className={`p-6 rounded-[2rem] border-2 transition-all cursor-pointer flex flex-col justify-between ${isDone ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-transparent hover:border-primary/20'}`}>
                       <div className="flex flex-row-reverse justify-between items-center mb-6">
                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">اليوم {step.day}</span>
                          {isDone ? <CheckSquare className="text-green-600" size={20} /> : <Square className="text-slate-300" size={20} />}

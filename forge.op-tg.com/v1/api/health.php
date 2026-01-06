@@ -119,8 +119,23 @@ try {
         'status' => 'healthy',
         'enabled' => array_keys(array_filter($flags)),
     ];
+    // Add flags at root level for frontend compatibility (map lowercase to UPPERCASE)
+    $health['flags'] = [
+        'UNIFIED_LEAD_VIEW' => $flags['unified_lead_view'] ?? false,
+        'AUTH_BRIDGE' => $flags['auth_bridge'] ?? false,
+        'SURVEY_FROM_LEAD' => $flags['survey_from_lead'] ?? false,
+        'SEND_FROM_REPORT' => $flags['send_from_report'] ?? false,
+        'WORKER_ENRICH' => $flags['worker_enabled'] ?? false,
+    ];
 } catch (Exception $e) {
-    // Ignore flags check errors
+    // Provide default flags on error
+    $health['flags'] = [
+        'UNIFIED_LEAD_VIEW' => false,
+        'AUTH_BRIDGE' => false,
+        'SURVEY_FROM_LEAD' => false,
+        'SEND_FROM_REPORT' => false,
+        'WORKER_ENRICH' => false,
+    ];
 }
 
 // Calculate total latency

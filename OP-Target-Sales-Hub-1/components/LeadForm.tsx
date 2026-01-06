@@ -274,18 +274,24 @@ const LeadForm: React.FC<LeadFormProps> = ({ onSuccess }) => {
       const followUpPlan = Array.isArray(reportOutput.follow_up_plan) ? reportOutput.follow_up_plan : [];
       if (followUpPlan.length > 0) {
         try {
-          const tasks: Task[] = followUpPlan.map((step: any) => ({
-            id: Math.random().toString(36).substr(2, 9),
-            leadId,
-            assignedToUserId: user.id,
-            dayNumber: step.day || 1,
-            channel: step.channel || '',
-            goal: step.goal || '',
-            action: step.action || '',
-            status: 'OPEN',
-            dueDate: new Date(Date.now() + (step.day || 1) * 86400000).toISOString()
-          }));
-          await db.saveTasks(tasks);
+          // Filter out invalid tasks and ensure required fields
+          const validTasks: Task[] = followUpPlan
+            .filter((step: any) => step && step.action && step.action.trim())
+            .map((step: any, index: number) => ({
+              id: Math.random().toString(36).substr(2, 9),
+              leadId,
+              assignedToUserId: user.id,
+              dayNumber: Math.max(1, Math.min(30, step.day || (index + 1))),
+              channel: step.channel || 'عام',
+              goal: step.goal || 'متابعة',
+              action: step.action.trim(),
+              status: 'OPEN' as const,
+              dueDate: new Date(Date.now() + (step.day || (index + 1)) * 86400000).toISOString()
+            }));
+          
+          if (validTasks.length > 0) {
+            await db.saveTasks(validTasks);
+          }
         } catch (taskErr) {
           console.warn('[LeadForm] Failed to save tasks, continuing:', taskErr);
         }
